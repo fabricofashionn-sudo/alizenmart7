@@ -3,14 +3,24 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { useCart } from "@/context/CartContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TruckDeliveryIcon, ShoppingCart01Icon, UserIcon } from "@hugeicons/core-free-icons";
 
 const Header = () => {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { totalItems } = useCart();
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   const categories = [
     { name: "Gadgets", hasSub: true, slug: "gadgets" },
@@ -114,7 +124,7 @@ const Header = () => {
             <Link href="/" className="flex-shrink-0 md:flex-none absolute left-1/2 -translate-x-1/2 md:relative md:left-0 md:translate-x-0">
               <div className="relative h-8 md:h-10 w-32 md:w-40 flex items-center">
                 <Image 
-                  src="/logo/logo1.png" 
+                  src="/logo/logo2.png" 
                   alt="Fabrico Fashion Logo" 
                   fill
                   sizes="(max-width: 768px) 128px, 160px"
@@ -125,13 +135,15 @@ const Header = () => {
             </Link>
 
             {/* Search Bar - Desktop Only */}
-            <div className="hidden md:flex flex-1 max-w-xl relative mx-4">
+            <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-xl relative mx-4">
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search product, brand, and more..."
                 className="w-full bg-white px-4 py-2 rounded-sm outline-none text-sm pr-12"
               />
-              <button className="absolute right-0 top-0 bottom-0 px-4 bg-[#FF5722] text-white rounded-r-sm flex items-center justify-center">
+              <button type="submit" className="absolute right-0 top-0 bottom-0 px-4 bg-[#FF5722] text-white rounded-r-sm flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -147,7 +159,7 @@ const Header = () => {
                   />
                 </svg>
               </button>
-            </div>
+            </form>
 
             {/* Action Icons */}
             <div className="flex items-center gap-3 md:gap-5 text-white">
@@ -174,13 +186,15 @@ const Header = () => {
           </div>
 
           {/* Search Bar - Mobile Only */}
-          <div className="md:hidden w-full relative">
+          <form onSubmit={handleSearchSubmit} className="md:hidden w-full relative">
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search product, brand, and more..."
               className="w-full bg-white px-4 py-2.5 rounded-sm outline-none text-sm pr-12 shadow-sm"
             />
-            <button className="absolute right-0 top-0 bottom-0 px-4 bg-[#FF5722] text-white rounded-r-sm flex items-center justify-center">
+            <button type="submit" className="absolute right-0 top-0 bottom-0 px-4 bg-[#FF5722] text-white rounded-r-sm flex items-center justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -196,7 +210,7 @@ const Header = () => {
                 />
               </svg>
             </button>
-          </div>
+          </form>
         </div>
       </div>
 

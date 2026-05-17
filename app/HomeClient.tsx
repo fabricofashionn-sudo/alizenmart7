@@ -129,7 +129,7 @@ export default function HomeClient({ initialProducts, initialSettings }: HomeCli
           <div className="bg-white rounded-md p-3 md:p-4 shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-4 md:mb-6 pb-2 border-b border-gray-100">
               <h2 className="text-lg md:text-xl font-bold text-gray-800">Flash Sale</h2>
-              <Link href="/" className="text-gray-500 text-xs md:text-sm font-medium hover:text-primary flex items-center gap-1">
+              <Link href="/flash-sale" className="text-gray-500 text-xs md:text-sm font-medium hover:text-primary flex items-center gap-1">
                 <span>View All</span>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />

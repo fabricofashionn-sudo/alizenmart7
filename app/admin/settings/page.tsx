@@ -145,6 +145,8 @@ export default function AdminSettings() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     hero_main_slider: "",
+    hero_main_slider_2: "",
+    hero_main_slider_3: "",
     hero_side_banner_1: "",
     hero_side_banner_2: "",
   });
@@ -165,6 +167,8 @@ export default function AdminSettings() {
       if (data && !error) {
         setFormData({
           hero_main_slider: data.hero_main_slider || "",
+          hero_main_slider_2: data.hero_main_slider_2 || "",
+          hero_main_slider_3: data.hero_main_slider_3 || "",
           hero_side_banner_1: data.hero_side_banner_1 || "",
           hero_side_banner_2: data.hero_side_banner_2 || "",
         });
@@ -190,6 +194,8 @@ export default function AdminSettings() {
         .upsert({
           id: 1,
           hero_main_slider: formData.hero_main_slider,
+          hero_main_slider_2: formData.hero_main_slider_2,
+          hero_main_slider_3: formData.hero_main_slider_3,
           hero_side_banner_1: formData.hero_side_banner_1,
           hero_side_banner_2: formData.hero_side_banner_2,
           updated_at: new Date().toISOString(),
@@ -245,15 +251,37 @@ export default function AdminSettings() {
               Drag & Drop your banner images or browse to upload them directly to Supabase storage. You can also paste an image URL instead.
             </p>
 
-            {/* Main Slider URL */}
+            {/* Main Slider 1 URL */}
             <BannerUploadField
-              label="Main Slider Banner"
+              label="Main Slider Banner 1 (First Slide)"
               name="hero_main_slider"
               value={formData.hero_main_slider}
               onChange={(url) => handleFieldChange("hero_main_slider", url)}
               aspectRatio="aspect-[2.1/1]"
               recommendation="Recommended aspect ratio: 2.1:1 (e.g. 1400x670px)"
             />
+
+            {/* Main Slider 2 URL */}
+            <BannerUploadField
+              label="Main Slider Banner 2 (Second Slide)"
+              name="hero_main_slider_2"
+              value={formData.hero_main_slider_2}
+              onChange={(url) => handleFieldChange("hero_main_slider_2", url)}
+              aspectRatio="aspect-[2.1/1]"
+              recommendation="Recommended aspect ratio: 2.1:1 (e.g. 1400x670px)"
+            />
+
+            {/* Main Slider 3 URL */}
+            <BannerUploadField
+              label="Main Slider Banner 3 (Third Slide)"
+              name="hero_main_slider_3"
+              value={formData.hero_main_slider_3}
+              onChange={(url) => handleFieldChange("hero_main_slider_3", url)}
+              aspectRatio="aspect-[2.1/1]"
+              recommendation="Recommended aspect ratio: 2.1:1 (e.g. 1400x670px)"
+            />
+
+            <hr className="border-gray-100" />
 
             {/* Side Banner 1 URL */}
             <BannerUploadField
@@ -282,20 +310,49 @@ export default function AdminSettings() {
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
             <h3 className="font-bold text-gray-800">Banner Previews</h3>
             
-            {/* Main Preview */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Main Slider Preview</span>
-              <div className="aspect-[2.1/1] bg-gray-50 rounded-xl border border-gray-100 overflow-hidden relative">
-                {formData.hero_main_slider ? (
-                  <img src={formData.hero_main_slider} alt="Main Slider Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 italic font-medium">No Image</div>
-                )}
+            {/* Main Previews */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Main Sliders</span>
+              
+              {/* Slider 1 Preview */}
+              <div className="space-y-1">
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Slide 1</span>
+                <div className="aspect-[2.1/1] bg-gray-50 rounded-xl border border-gray-100 overflow-hidden relative">
+                  {formData.hero_main_slider ? (
+                    <img src={formData.hero_main_slider} alt="Main Slider 1 Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 italic font-medium">No Image 1</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Slider 2 Preview */}
+              <div className="space-y-1">
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Slide 2</span>
+                <div className="aspect-[2.1/1] bg-gray-50 rounded-xl border border-gray-100 overflow-hidden relative">
+                  {formData.hero_main_slider_2 ? (
+                    <img src={formData.hero_main_slider_2} alt="Main Slider 2 Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 italic font-medium">No Image 2</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Slider 3 Preview */}
+              <div className="space-y-1">
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Slide 3</span>
+                <div className="aspect-[2.1/1] bg-gray-50 rounded-xl border border-gray-100 overflow-hidden relative">
+                  {formData.hero_main_slider_3 ? (
+                    <img src={formData.hero_main_slider_3} alt="Main Slider 3 Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 italic font-medium">No Image 3</div>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Side Banner Previews */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
               <div className="space-y-1.5">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Side 1</span>
                 <div className="aspect-square bg-gray-50 rounded-xl border border-gray-100 overflow-hidden relative">

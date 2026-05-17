@@ -105,7 +105,11 @@ export default function Home() {
       
       <main className="flex-1 pb-20 md:pb-12">
         <Hero 
-          mainSlider={settings?.hero_main_slider}
+          mainSliders={[
+            settings?.hero_main_slider || "/hero_banner_1.png",
+            settings?.hero_main_slider_2 || "/hero_banner_1.png",
+            settings?.hero_main_slider_3 || "/hero_banner_1.png"
+          ]}
           sideBanner1={settings?.hero_side_banner_1}
           sideBanner2={settings?.hero_side_banner_2}
         />

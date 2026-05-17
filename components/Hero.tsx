@@ -1,34 +1,68 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 interface HeroProps {
-  mainSlider?: string;
+  mainSliders?: string[];
   sideBanner1?: string;
   sideBanner2?: string;
 }
 
 const Hero = ({
-  mainSlider = "/hero_banner_1.png",
+  mainSliders = ["/hero_banner_1.png", "/hero_banner_1.png", "/hero_banner_1.png"],
   sideBanner1 = "/side_banner_1.png",
   sideBanner2 = "/side_banner_1.png",
 }: HeroProps) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    if (!mainSliders || mainSliders.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % mainSliders.length);
+    }, 4000); // Slide every 4 seconds
+
+    return () => clearInterval(timer);
+  }, [mainSliders]);
+
   return (
     <section className="bg-white py-4 md:py-6">
       <div className="container-custom grid grid-cols-12 gap-4 md:gap-6">
-        {/* Main Slider */}
-        <div className="col-span-12 lg:col-span-9 relative aspect-[2.1/1] md:aspect-[2.2/1] bg-gray-100 rounded-lg md:rounded-2xl overflow-hidden shadow-sm">
-          <Image
-            src={mainSlider}
-            alt="Hero Banner"
-            fill
-            className="object-cover"
-            priority
-          />
-          {/* Slider dots */}
-          <div className="absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className={`w-1.5 h-1.5 md:w-6 md:h-1.5 rounded-full ${i === 1 ? 'bg-[#FF5722]' : 'bg-white/80 shadow-sm'}`}></div>
-            ))}
-          </div>
+        {/* Main Slider Carousel */}
+        <div className="col-span-12 lg:col-span-9 relative aspect-[2.1/1] md:aspect-[2.2/1] bg-gray-150 rounded-lg md:rounded-2xl overflow-hidden shadow-sm">
+          {mainSliders.map((slide, index) => (
+            <div 
+              key={index} 
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
+            >
+              <Image
+                src={slide}
+                alt={`Hero Banner ${index + 1}`}
+                fill
+                className="object-cover"
+                priority={index === 0}
+              />
+            </div>
+          ))}
+          
+          {/* Slider indicators (Dots) */}
+          {mainSliders.length > 1 && (
+            <div className="absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2 z-20">
+              {mainSliders.map((_, i) => (
+                <button 
+                  type="button"
+                  key={i} 
+                  onClick={() => setCurrentSlide(i)}
+                  className={`w-1.5 h-1.5 md:w-6 md:h-1.5 rounded-full transition-all duration-300 ${
+                    i === currentSlide ? 'bg-[#FF5722] w-3 md:w-8' : 'bg-white/80 hover:bg-white shadow-sm'
+                  }`}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Side Banners */}

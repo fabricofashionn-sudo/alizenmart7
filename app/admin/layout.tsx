@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
   DashboardCircleIcon, 
@@ -20,13 +21,53 @@ import {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const pathname = usePathname();
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
+    checkAdminAccess();
   }, []);
+
+  const checkAdminAccess = async () => {
+    setCheckingAuth(true);
+    try {
+      const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+      if (error || !currentUser) {
+        window.location.href = "/login?redirect=/admin";
+        return;
+      }
+
+      const adminEmails = [
+        "blackrisebd@gmail.com",
+        "admin@fabricofashion.com",
+      ];
+      const email = String(currentUser.email || "").toLowerCase();
+      const isWhitelisted = 
+        adminEmails.includes(email) || 
+        email.startsWith("admin@") || 
+        email.includes("admin") || 
+        email.includes("shawon") ||
+        email.includes("banik");
+      const hasAdminMeta = currentUser.user_metadata?.role === "admin" || currentUser.user_metadata?.is_admin === true;
+
+      if (!isWhitelisted && !hasAdminMeta) {
+        alert("Access Denied: You do not have administrator privileges.");
+        window.location.href = "/";
+        return;
+      }
+
+      setUser(currentUser);
+    } catch (err) {
+      console.error("Admin authentication check failed:", err);
+      window.location.href = "/login?redirect=/admin";
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
 
   const menuItems = [
     { name: "Overview", href: "/admin", icon: DashboardCircleIcon },
@@ -36,6 +77,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Users", href: "/admin/users", icon: UserGroupIcon },
     { name: "Settings", href: "/admin/settings", icon: Settings03Icon },
   ];
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 border-4 border-[#1a80c2] border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-sm font-bold text-gray-600 animate-pulse">Verifying Administrator Access...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex relative overflow-x-hidden">
@@ -49,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside 
-        className={`fixed md:sticky md:top-0 h-full md:h-screen z-50 bg-white border-r border-gray-200 transition-all duration-300 flex flex-col
+        className={`fixed md:fixed md:left-0 md:top-0 md:bottom-0 h-full md:h-screen z-50 bg-white border-r border-gray-200 transition-all duration-300 flex flex-col
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0
           ${isSidebarOpen ? "w-64 md:w-64" : "w-64 md:w-20"}
@@ -60,7 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex items-center gap-2">
               <div className="relative h-8 w-28">
                 <Image 
-                  src="/logo/logo2.png" 
+                  src="/logo/logo1.png" 
                   alt="Fabrico Admin Logo" 
                   fill
                   sizes="112px"
@@ -112,7 +162,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
+        isSidebarOpen ? "md:pl-64" : "md:pl-20"
+      }`}>
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-40">
            <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -129,11 +181,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
             <div className="flex items-center gap-3 border-l pl-4 ml-2">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-gray-800">Admin User</p>
-                <p className="text-[10px] text-gray-500 font-medium uppercase">Super Admin</p>
+                <p className="text-sm font-bold text-gray-800">
+                  {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Admin"}
+                </p>
+                <p className="text-[10px] text-green-600 font-extrabold uppercase tracking-wider">
+                  {user?.user_metadata?.role || "Administrator"}
+                </p>
               </div>
-              <div className="w-10 h-10 bg-gray-100 rounded-full border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
-                <HugeiconsIcon icon={UserIcon} size={24} className="text-gray-600" />
+              <div className="w-10 h-10 bg-gradient-to-tr from-[#1a80c2] to-blue-400 text-white rounded-full border-2 border-white shadow-sm flex items-center justify-center overflow-hidden font-black text-sm uppercase">
+                {user?.user_metadata?.full_name ? user.user_metadata.full_name.substring(0, 2) : "AD"}
               </div>
             </div>
           </div>

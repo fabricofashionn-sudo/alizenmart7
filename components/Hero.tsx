@@ -41,6 +41,7 @@ const Hero = ({
                 src={slide}
                 alt={`Hero Banner ${index + 1}`}
                 fill
+                sizes="(max-width: 1024px) 100vw, 75vw"
                 className="object-cover"
                 priority={index === 0}
               />
@@ -72,6 +73,7 @@ const Hero = ({
               src={sideBanner1}
               alt="Side Banner 1"
               fill
+              sizes="(max-width: 1024px) 50vw, 25vw"
               className="object-cover"
             />
           </div>
@@ -80,6 +82,7 @@ const Hero = ({
               src={sideBanner2}
               alt="Side Banner 2"
               fill
+              sizes="(max-width: 1024px) 50vw, 25vw"
               className="object-cover"
             />
           </div>

@@ -171,7 +171,7 @@ const Header = () => {
               <Link href="/checkout" className="relative flex items-center justify-center p-1 hover:text-[#FF5722] transition-colors duration-200">
                 <div className="relative">
                   <HugeiconsIcon icon={ShoppingCart01Icon} size={24} color="currentColor" strokeWidth={2} />
-                  <span className="absolute -top-1.5 -right-1.5 bg-[#FF5722] text-white text-[10px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold border-2 border-white">
+                  <span className="absolute -top-1.5 -right-1.5 bg-[#FF5722] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white">
                     {totalItems}
                   </span>
                 </div>

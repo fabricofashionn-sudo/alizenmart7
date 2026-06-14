@@ -197,7 +197,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         <main className="p-6 md:p-10 flex-1">
-          {children}
+          <React.Suspense fallback={
+            <div className="flex flex-col items-center justify-center min-h-[450px] space-y-4">
+              <div className="w-12 h-12 border-4 border-blue-100 border-t-[#1a80c2] rounded-full animate-spin" />
+              <p className="text-gray-500 font-medium text-sm">Loading...</p>
+            </div>
+          }>
+            {children}
+          </React.Suspense>
         </main>
       </div>
     </div>

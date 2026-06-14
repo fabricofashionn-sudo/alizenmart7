@@ -62,6 +62,7 @@ export const metadata: Metadata = {
 };
 
 import { CartProvider } from "@/context/CartContext";
+import { Suspense } from "react";
 
 export default function RootLayout({
   children,
@@ -76,7 +77,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <CartProvider>
-          {children}
+          <Suspense fallback={null}>
+            {children}
+          </Suspense>
         </CartProvider>
       </body>
     </html>

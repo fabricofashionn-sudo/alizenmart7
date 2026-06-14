@@ -1,5 +1,6 @@
+import { cacheLife } from "next/cache";
 import { supabase } from "@/lib/supabase";
-import HomeClient from "./HomeClient";
+import HomeClient from "../HomeClient";
 
 // Metadata for homepage
 export const metadata = {
@@ -7,33 +8,38 @@ export const metadata = {
   description: "Explore Fabrico Fashion for premium clothing, high-quality panjabi, embroidery designs, gadgets, smart electronics, home & lifestyle products in Bangladesh.",
 };
 
-export default async function Home() {
-  let products: any[] = [];
-  let settings: any = null;
+// Server-side cached query with "use cache" directive
+async function getCachedHomeData() {
+  "use cache";
+  cacheLife("minutes");
 
   try {
-    // Server-side fetching from Supabase
-    const { data: dbProducts } = await supabase
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false });
+    // Parallel Server-side fetching from Supabase
+    const [productsResult, settingsResult] = await Promise.all([
+      supabase
+        .from('products')
+        .select('id, title, price, oldPrice, image, is_featured, slug, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50),
+      supabase
+        .from('settings')
+        .select('*')
+        .eq('id', 1)
+        .single()
+    ]);
 
-    if (dbProducts) {
-      products = dbProducts;
-    }
-
-    const { data: dbSettings } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('id', 1)
-      .single();
-
-    if (dbSettings) {
-      settings = dbSettings;
-    }
+    return {
+      products: productsResult.data || [],
+      settings: settingsResult.data || null
+    };
   } catch (err) {
-    console.error("Error fetching homepage data on server:", err);
+    console.error("Error fetching homepage data on server inside cached function:", err);
+    return { products: [], settings: null };
   }
+}
+
+export default async function Home() {
+  const { products, settings } = await getCachedHomeData();
 
   // Structured schemas for Organization and WebSite
   const jsonLd = [

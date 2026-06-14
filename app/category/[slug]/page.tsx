@@ -56,12 +56,11 @@ export async function generateMetadata(
   };
 }
 
-export default async function CategoryPage({ params }: Props) {
-  const { slug } = await params;
-  const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : "";
-  const categoryName = getCategoryName(decodedSlug);
+import { cacheLife } from "next/cache";
 
-  let products: any[] = [];
+async function getCategoryProducts(categoryName: string) {
+  "use cache";
+  cacheLife("minutes");
   try {
     const { data, error } = await supabase
       .from("products")
@@ -70,11 +69,20 @@ export default async function CategoryPage({ params }: Props) {
       .order("created_at", { ascending: false });
 
     if (data && !error) {
-      products = data;
+      return data;
     }
   } catch (err) {
-    console.error("Failed to fetch products on server for category:", err);
+    console.error("Failed to fetch products on server for category inside cached function:", err);
   }
+  return [];
+}
+
+export default async function CategoryPage({ params }: Props) {
+  const { slug } = await params;
+  const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : "";
+  const categoryName = getCategoryName(decodedSlug);
+
+  const products = await getCategoryProducts(categoryName);
 
   // Schema Markup: ItemList and BreadcrumbList for categories
   const sitemapUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://fabricofashion.com";

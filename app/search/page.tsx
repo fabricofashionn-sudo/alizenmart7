@@ -19,6 +19,29 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 }
 
+import { cacheLife } from "next/cache";
+
+async function getAllProductsForSearch() {
+  "use cache";
+  cacheLife("minutes");
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (data && !error) {
+      return data;
+    }
+    if (error) {
+      throw new Error(error.message);
+    }
+  } catch (err: any) {
+    console.error("Failed to fetch products for search in cached function:", err);
+    throw err;
+  }
+  return [];
+}
+
 export default async function SearchPage({ searchParams }: Props) {
   const { q } = await searchParams;
   const queryText = (q || "").trim();
@@ -28,24 +51,14 @@ export default async function SearchPage({ searchParams }: Props) {
 
   if (queryText) {
     try {
-      // Fetch products matching the query from Supabase
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        errorMsg = error.message;
-      } else if (data) {
-        // Filter by title matching case-insensitive query
-        const queryLower = queryText.toLowerCase();
-        products = data.filter(
-          p =>
-            p.title?.toLowerCase().includes(queryLower) ||
-            p.category?.toLowerCase().includes(queryLower) ||
-            p.description?.toLowerCase().includes(queryLower)
-        );
-      }
+      const data = await getAllProductsForSearch();
+      const queryLower = queryText.toLowerCase();
+      products = data.filter(
+        p =>
+          p.title?.toLowerCase().includes(queryLower) ||
+          p.category?.toLowerCase().includes(queryLower) ||
+          p.description?.toLowerCase().includes(queryLower)
+      );
     } catch (err: any) {
       errorMsg = err.message || "Failed to search products";
     }

@@ -14,8 +14,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function FlashSalePage() {
-  let products: any[] = [];
+import { cacheLife } from "next/cache";
+
+async function getFlashSaleProducts() {
+  "use cache";
+  cacheLife("minutes");
   try {
     const { data, error } = await supabase
       .from("products")
@@ -24,11 +27,16 @@ export default async function FlashSalePage() {
 
     if (data && !error) {
       // Filter products on discount (having an oldPrice > price)
-      products = data.filter(p => p.oldPrice && p.oldPrice > p.price);
+      return data.filter(p => p.oldPrice && p.oldPrice > p.price);
     }
   } catch (err) {
-    console.error("Failed to fetch flash sale products on server:", err);
+    console.error("Failed to fetch flash sale products on server inside cached function:", err);
   }
+  return [];
+}
+
+export default async function FlashSalePage() {
+  const products = await getFlashSaleProducts();
 
   // Fallback static flash sale products if DB is empty
   const defaultFlashSale = [

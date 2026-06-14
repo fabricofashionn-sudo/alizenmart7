@@ -14,9 +14,10 @@ interface ProductCardProps {
   oldPrice?: number;
   image: string;
   slug?: string;
+  priority?: boolean;
 }
 
-const ProductCard = ({ title, price, oldPrice, image, slug }: ProductCardProps) => {
+const ProductCard = ({ title, price, oldPrice, image, slug, priority }: ProductCardProps) => {
   const router = useRouter();
   const { addToCart } = useCart();
 
@@ -63,6 +64,7 @@ const ProductCard = ({ title, price, oldPrice, image, slug }: ProductCardProps) 
             width={300}
             height={300}
             className="object-contain w-full h-full group-hover:scale-105 transition-transform duration-300"
+            priority={priority}
           />
         </div>
       </div>
@@ -74,31 +76,31 @@ const ProductCard = ({ title, price, oldPrice, image, slug }: ProductCardProps) 
             {title}
           </h3>
         </div>
-        
+
         <div className="flex items-center gap-2 mb-6 justify-center w-full">
           <span className="text-gray-900 font-bold text-base md:text-lg">৳ {price}</span>
           {oldPrice && (
             <span className="text-gray-400 text-xs md:text-sm line-through decoration-gray-400">৳ {oldPrice}</span>
           )}
         </div>
-        
+
         <div className="mt-auto w-full flex gap-1.5 md:gap-2 relative z-20">
           {/* Cart Button */}
-          <button 
+          <button
             onClick={handleAddToCart}
             className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 border border-[#FF5722] rounded-md md:rounded-lg flex items-center justify-center hover:bg-orange-50 transition-colors bg-white"
           >
-            <HugeiconsIcon 
+            <HugeiconsIcon
               icon={ShoppingBasket01Icon}
-              size={20} 
-              color="#FF5722" 
-              className="w-4 h-4 md:w-5 md:h-5" 
+              size={20}
+              color="#FF5722"
+              className="w-4 h-4 md:w-5 md:h-5"
               strokeWidth={1.5}
             />
           </button>
 
           {/* Order Button */}
-          <button 
+          <button
             onClick={handleOrderNow}
             className="flex-1 bg-[#FF5722] text-white h-8 md:h-10 rounded-md md:rounded-lg text-[10px] md:text-sm font-bold hover:bg-[#E64A19] transition-all active:scale-[0.98] shadow-sm flex items-center justify-center leading-none"
           >

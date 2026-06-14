@@ -1,7 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 const Footer = () => {
+  const [year, setYear] = useState(2026);
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
+
   return (
     <footer className="w-full relative">
       {/* Main Footer Container */}
@@ -59,7 +68,7 @@ const Footer = () => {
                 </Link>
               </div>
             </div>
-
+ 
             {/* Column 2 - Contact Us */}
             <div className="space-y-4">
               <h4 className="text-[#093554] font-bold text-base md:text-lg">Contact Us</h4>
@@ -93,7 +102,7 @@ const Footer = () => {
                 </li>
               </ul>
             </div>
-
+ 
             {/* Column 3 - About Us */}
             <div className="space-y-4">
               <h4 className="text-[#093554] font-bold text-base md:text-lg">About Us</h4>
@@ -104,7 +113,7 @@ const Footer = () => {
                 <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">About us</Link></li>
               </ul>
             </div>
-
+ 
             {/* Column 4 - Useful Links */}
             <div className="space-y-4">
               <h4 className="text-[#093554] font-bold text-base md:text-lg">Useful Links</h4>
@@ -115,20 +124,20 @@ const Footer = () => {
                 <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">FAQ</Link></li>
               </ul>
             </div>
-
+ 
           </div>
         </div>
       </div>
-
+ 
       {/* Footer Bottom copyright Bar */}
       <div className="bg-[#eaeaea] py-4 border-t border-gray-200">
         <p className="text-center text-xs md:text-sm font-bold text-gray-700">
-          Copyright © {new Date().getFullYear()} Fabrico Fashion
+          Copyright © {year} Fabrico Fashion
         </p>
       </div>
-
+ 
       {/* Floating chat bubble on bottom right */}
-      <div className="fixed bottom-6 right-6 z-40">
+      <div className="fixed bottom-28 md:bottom-6 right-6 z-40">
         <Link 
           href="https://wa.me/8801518486910" 
           target="_blank"

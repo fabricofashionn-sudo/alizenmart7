@@ -19,6 +19,42 @@ export default function HomeClient({ initialProducts, initialSettings }: HomeCli
   const [loading, setLoading] = useState(initialProducts ? false : true);
   const [settings, setSettings] = useState<any>(initialSettings || null);
 
+  // Load initial cached data from localStorage on mount if server didn't provide it
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const cachedProducts = localStorage.getItem("alizenmart_cached_products");
+      const cachedSettings = localStorage.getItem("alizenmart_cached_settings");
+
+      if ((!initialProducts || initialProducts.length === 0) && cachedProducts) {
+        try {
+          setProducts(JSON.parse(cachedProducts));
+          setLoading(false);
+        } catch (e) {
+          console.error("Failed to parse cached products", e);
+        }
+      }
+      if (!initialSettings && cachedSettings) {
+        try {
+          setSettings(JSON.parse(cachedSettings));
+        } catch (e) {
+          console.error("Failed to parse cached settings", e);
+        }
+      }
+    }
+  }, [initialProducts, initialSettings]);
+
+  // Save products and settings to localStorage when they change (either from server or client fetch)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (products && products.length > 0) {
+        localStorage.setItem("alizenmart_cached_products", JSON.stringify(products));
+      }
+      if (settings) {
+        localStorage.setItem("alizenmart_cached_settings", JSON.stringify(settings));
+      }
+    }
+  }, [products, settings]);
+
   useEffect(() => {
     if (!initialProducts || initialProducts.length === 0) {
       fetchProducts();
@@ -89,7 +125,7 @@ export default function HomeClient({ initialProducts, initialSettings }: HomeCli
 
   const dbFlashSale = products.filter(p => p.oldPrice && p.oldPrice > p.price);
   const flashSaleProducts = products.length > 0 ? dbFlashSale : defaultFlashSale;
-  
+
   const dbFeatured = products.filter(p => p.is_featured === true);
   const featuredProducts = products.length > 0 ? dbFeatured : defaultFeatured;
 
@@ -112,9 +148,9 @@ export default function HomeClient({ initialProducts, initialSettings }: HomeCli
   return (
     <div className="flex flex-col min-h-screen bg-[#f4f4f4]">
       <Header />
-      
+
       <main className="flex-1 pb-20 md:pb-12">
-        <Hero 
+        <Hero
           mainSliders={[
             settings?.hero_main_slider || "/hero_banner_1.png",
             settings?.hero_main_slider_2 || "/hero_banner_1.png",
@@ -140,13 +176,15 @@ export default function HomeClient({ initialProducts, initialSettings }: HomeCli
               <SkeletonGrid />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                {flashSaleProducts.map((product) => (
+                {flashSaleProducts.map((product, index) => (
                   <ProductCard
                     key={product.id}
                     title={product.title}
                     price={product.price}
                     oldPrice={product.oldPrice}
                     image={product.image}
+                    slug={product.slug}
+                    priority={index < 5}
                   />
                 ))}
               </div>
@@ -159,45 +197,47 @@ export default function HomeClient({ initialProducts, initialSettings }: HomeCli
         {/* Campaigns Banner */}
         <section className="container-custom mb-6 md:mb-8">
           <div className="relative h-32 md:h-40 rounded-lg md:rounded-md overflow-hidden bg-[#1a80c2] flex items-center justify-center text-white px-4">
-             <div className="text-center">
-                <h2 className="text-xl md:text-3xl font-bold mb-1 md:mb-2 italic uppercase tracking-tighter">MEGA CAMPAIGN</h2>
-                <p className="text-xs md:text-lg opacity-90">Enjoy up to 80% discount on all products!</p>
-                <button className="mt-3 md:mt-4 bg-white text-[#1a80c2] px-6 md:px-8 py-1.5 md:py-2 rounded-full text-xs md:text-base font-bold hover:shadow-lg transition-shadow">Shop Now</button>
-             </div>
+            <div className="text-center">
+              <h2 className="text-xl md:text-3xl font-bold mb-1 md:mb-2 italic uppercase tracking-tighter">MEGA CAMPAIGN</h2>
+              <p className="text-xs md:text-lg opacity-90">Enjoy up to 80% discount on all products!</p>
+              <button className="mt-3 md:mt-4 bg-white text-[#1a80c2] px-6 md:px-8 py-1.5 md:py-2 rounded-full text-xs md:text-base font-bold hover:shadow-lg transition-shadow">Shop Now</button>
+            </div>
           </div>
         </section>
 
         {/* Featured Products Section */}
         <section className="container-custom">
-           <div className="flex justify-between items-center mb-4 md:mb-6">
-              <h2 className="text-lg md:text-xl font-bold text-gray-800">Featured Products</h2>
-              <Link href="/featured" className="text-gray-500 text-xs md:text-sm font-medium hover:text-primary flex items-center gap-1">
-                <span>View All</span>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-              </Link>
-           </div>
-           {loading ? (
-             <SkeletonGrid />
-           ) : (
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                {featuredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    title={product.title}
-                    price={product.price}
-                    oldPrice={product.oldPrice}
-                    image={product.image}
-                  />
-                ))}
-             </div>
-           )}
-           <div className="flex justify-center mt-8 md:mt-10">
-              <button className="border border-[#1a80c2] text-[#1a80c2] px-10 md:px-12 py-2 md:py-2.5 rounded-sm font-bold hover:bg-[#1a80c2] hover:text-white transition-colors uppercase text-[12px] md:text-sm tracking-wide">
-                Load More
-              </button>
-           </div>
+          <div className="flex justify-between items-center mb-4 md:mb-6">
+            <h2 className="text-lg md:text-xl font-bold text-gray-800">Featured Products</h2>
+            <Link href="/featured" className="text-gray-500 text-xs md:text-sm font-medium hover:text-primary flex items-center gap-1">
+              <span>View All</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </Link>
+          </div>
+          {loading ? (
+            <SkeletonGrid />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              {featuredProducts.map((product, index) => (
+                <ProductCard
+                  key={product.id}
+                  title={product.title}
+                  price={product.price}
+                  oldPrice={product.oldPrice}
+                  image={product.image}
+                  slug={product.slug}
+                  priority={index < 5}
+                />
+              ))}
+            </div>
+          )}
+          <div className="flex justify-center mt-8 md:mt-10">
+            <button className="border border-[#1a80c2] text-[#1a80c2] px-10 md:px-12 py-2 md:py-2.5 rounded-sm font-bold hover:bg-[#1a80c2] hover:text-white transition-colors uppercase text-[12px] md:text-sm tracking-wide">
+              Load More
+            </button>
+          </div>
         </section>
       </main>
 

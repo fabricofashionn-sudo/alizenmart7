@@ -14,8 +14,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function FeaturedProductsPage() {
-  let products: any[] = [];
+import { cacheLife } from "next/cache";
+
+async function getFeaturedProducts() {
+  "use cache";
+  cacheLife("minutes");
   try {
     const { data, error } = await supabase
       .from("products")
@@ -24,11 +27,16 @@ export default async function FeaturedProductsPage() {
       .order("created_at", { ascending: false });
 
     if (data && !error) {
-      products = data;
+      return data;
     }
   } catch (err) {
-    console.error("Failed to fetch featured products on server:", err);
+    console.error("Failed to fetch featured products on server inside cached function:", err);
   }
+  return [];
+}
+
+export default async function FeaturedProductsPage() {
+  const products = await getFeaturedProducts();
 
   // Fallback static featured products if DB is empty
   const defaultFeatured = [

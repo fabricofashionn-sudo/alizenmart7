@@ -36,7 +36,11 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
+import { cacheLife } from "next/cache";
+
 async function getProductBySlug(slug: string) {
+  "use cache";
+  cacheLife("minutes");
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : '';
   
   try {

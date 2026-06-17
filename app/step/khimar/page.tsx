@@ -60,8 +60,16 @@ export default function ShirtLandingPage() {
   
   // Selected Product Configuration
   const [selectedVariant, setSelectedVariant] = useState(SHIRT_VARIANTS[0]);
-  const [selectedSize, setSelectedSize] = useState(SHIRT_SIZES[1]); // Default L
+  const [selectedSizes, setSelectedSizes] = useState<typeof SHIRT_SIZES>([SHIRT_SIZES[1]]); // Default L
   const [quantity, setQuantity] = useState(1);
+
+  const toggleSize = (size: typeof SHIRT_SIZES[0]) => {
+    if (selectedSizes.some((s) => s.id === size.id)) {
+      setSelectedSizes(selectedSizes.filter((s) => s.id !== size.id));
+    } else {
+      setSelectedSizes([...selectedSizes, size]);
+    }
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -96,11 +104,12 @@ export default function ShirtLandingPage() {
   // Price Calculations
   const unitPrice = 550;
   const oldUnitPrice = 850;
-  const subtotal = unitPrice * quantity;
+  const totalQuantity = quantity * selectedSizes.length;
+  const subtotal = unitPrice * totalQuantity;
   const deliveryCharge = deliveryOption === "inside" ? 70 : 120;
   
   // Free delivery for 2 or more shirts!
-  const isFreeDelivery = quantity >= 2;
+  const isFreeDelivery = totalQuantity >= 2;
   const finalDeliveryCharge = isFreeDelivery ? 0 : deliveryCharge;
   const total = subtotal + finalDeliveryCharge;
 
@@ -135,6 +144,11 @@ export default function ShirtLandingPage() {
       return;
     }
 
+    if (selectedSizes.length === 0) {
+      showError("অনুগ্রহ করে অন্তত একটি সাইজ নির্বাচন করুন।");
+      return;
+    }
+
     if (paymentMethod !== "cod") {
       if (!bkashNumber.trim() || !transactionId.trim()) {
         showError("পেমেন্ট ভেরিফাই করার জন্য অনুগ্রহ করে আপনার পেমেন্ট নম্বর এবং ট্রানজেকশন আইডি প্রদান করুন।");
@@ -159,17 +173,15 @@ export default function ShirtLandingPage() {
         payment_method: paymentMethod,
         bkash_number: paymentMethod !== "cod" ? bkashNumber : null,
         transaction_id: paymentMethod !== "cod" ? transactionId : null,
-        notes: `Size: ${selectedSize.name.split(" ")[0]} | ${orderNote}` + 
+        notes: `Sizes: ${selectedSizes.map(sz => sz.name.split(" ")[0]).join(", ")} | ${orderNote}` + 
           (paymentMethod !== "cod" && paymentMethod !== "bkash" ? ` [${paymentMethod.toUpperCase()} Pay: ${bkashNumber}, TrxID: ${transactionId}]` : ""),
-        items: [
-          {
-            id: `shirt-${selectedVariant.id}-${selectedSize.id}`,
-            title: `EASY MAN শার্ট - ${selectedVariant.name} (Size: ${selectedSize.name.split(" ")[0]})`,
-            price: unitPrice,
-            quantity: quantity,
-            image: selectedVariant.image
-          }
-        ],
+        items: selectedSizes.map(sz => ({
+          id: `shirt-${selectedVariant.id}-${sz.id}`,
+          title: `EASY MAN শার্ট - ${selectedVariant.name} (Size: ${sz.name.split(" ")[0]})`,
+          price: unitPrice,
+          quantity: quantity,
+          image: selectedVariant.image
+        })),
       };
 
       let finalOrderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
@@ -766,9 +778,24 @@ export default function ShirtLandingPage() {
                       required
                       placeholder="১১ ডিজিটের মোবাইল নম্বর"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-sm outline-none focus:border-amber-400 transition-all text-slate-100"
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, "");
+                        if (val.startsWith("8801")) {
+                          val = val.substring(2);
+                        }
+                        setPhone(val.slice(0, 11));
+                      }}
+                      className={`w-full bg-slate-950 border rounded-xl p-3.5 text-sm outline-none transition-all text-slate-100 ${
+                        phone && (phone.length !== 11 || !phone.startsWith("01"))
+                          ? "border-red-500 focus:border-red-500"
+                          : "border-slate-800 focus:border-amber-400"
+                      }`}
                     />
+                    {phone && (phone.length !== 11 || !phone.startsWith("01")) && (
+                      <p className="text-[10px] text-red-500 font-semibold mt-1">
+                        সঠিক ১১ ডিজিটের মোবাইল নম্বর লিখুন (যেমন: 01XXXXXXXXX)।
+                      </p>
+                    )}
                   </div>
 
                   {/* Full Address */}
@@ -960,14 +987,14 @@ export default function ShirtLandingPage() {
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">সাইজ নির্বাচন করুন (Size)*</h4>
                   <div className="grid grid-cols-4 gap-2">
                     {SHIRT_SIZES.map((sz) => {
-                      const isSzSelected = selectedSize.id === sz.id;
+                      const isSzSelected = selectedSizes.some((s) => s.id === sz.id);
                       return (
                         <button
                           key={sz.id}
                           type="button"
-                          onClick={() => setSelectedSize(sz)}
+                          onClick={() => toggleSize(sz)}
                           className={`py-2 px-1 text-xs font-black rounded-lg border text-center transition-all ${
-                            isSzSelected ? "border-amber-400 bg-amber-400/10 text-amber-400" : "border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700"
+                            isSzSelected ? "border-amber-400 bg-amber-400/10 text-amber-400 font-bold" : "border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700"
                           }`}
                         >
                           {sz.name.split(" ")[0]}
@@ -975,7 +1002,11 @@ export default function ShirtLandingPage() {
                       );
                     })}
                   </div>
-                  <p className="text-[10px] text-slate-400 italic font-semibold">{selectedSize.name}</p>
+                  <p className="text-[10px] text-slate-400 italic font-semibold">
+                    {selectedSizes.length > 0
+                      ? `নির্বাচিত সাইজসমূহ: ${selectedSizes.map((s) => s.name).join(", ")}`
+                      : "কোনো সাইজ সিলেক্ট করা হয়নি"}
+                  </p>
                 </div>
 
                 {/* Delivery Location Selection */}
@@ -1111,7 +1142,9 @@ export default function ShirtLandingPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">কালার ও সাইজ:</span>
-                <span className="text-white">{selectedVariant.name.split(" ")[0]} Plaid (Size: {selectedSize.name.split(" ")[0]})</span>
+                <span className="text-white">
+                  {selectedVariant.name.split(" ")[0]} Plaid (Size: {selectedSizes.map((s) => s.name.split(" ")[0]).join(", ")})
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">পেমেন্ট পদ্ধতি:</span>

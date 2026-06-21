@@ -47,7 +47,7 @@ const SHIRT_SIZES = [
 
 export default function ShirtLandingPage() {
   const router = useRouter();
-  
+
   // Checkout Form States
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -57,7 +57,7 @@ export default function ShirtLandingPage() {
   const [paymentMethod, setPaymentMethod] = useState("cod"); // "cod" | "bkash" | "nagad" | "rocket"
   const [bkashNumber, setBkashNumber] = useState("");
   const [transactionId, setTransactionId] = useState("");
-  
+
   // Selected Product Configuration
   const [selectedVariant, setSelectedVariant] = useState(SHIRT_VARIANTS[0]);
   const [selectedSizes, setSelectedSizes] = useState<typeof SHIRT_SIZES>([SHIRT_SIZES[1]]); // Default L
@@ -107,7 +107,7 @@ export default function ShirtLandingPage() {
   const totalQuantity = quantity * selectedSizes.length;
   const subtotal = unitPrice * totalQuantity;
   const deliveryCharge = deliveryOption === "inside" ? 70 : 120;
-  
+
   // Free delivery for 2 or more shirts!
   const isFreeDelivery = totalQuantity >= 2;
   const finalDeliveryCharge = isFreeDelivery ? 0 : deliveryCharge;
@@ -160,7 +160,7 @@ export default function ShirtLandingPage() {
 
     try {
       const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
-      
+
       // Build order details matching the database schema
       const orderPayload = {
         user_id: user?.id || null,
@@ -173,7 +173,7 @@ export default function ShirtLandingPage() {
         payment_method: paymentMethod,
         bkash_number: paymentMethod !== "cod" ? bkashNumber : null,
         transaction_id: paymentMethod !== "cod" ? transactionId : null,
-        notes: `Sizes: ${selectedSizes.map(sz => sz.name.split(" ")[0]).join(", ")} | ${orderNote}` + 
+        notes: `Sizes: ${selectedSizes.map(sz => sz.name.split(" ")[0]).join(", ")} | ${orderNote}` +
           (paymentMethod !== "cod" && paymentMethod !== "bkash" ? ` [${paymentMethod.toUpperCase()} Pay: ${bkashNumber}, TrxID: ${transactionId}]` : ""),
         items: selectedSizes.map(sz => ({
           id: `shirt-${selectedVariant.id}-${sz.id}`,
@@ -275,7 +275,7 @@ export default function ShirtLandingPage() {
 
         <div className="max-w-[1200px] mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            
+
             {/* Left Content */}
             <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
               <span className="inline-flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/30 text-amber-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -288,7 +288,7 @@ export default function ShirtLandingPage() {
               <p className="text-base md:text-lg text-slate-350 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
                 প্রিমিয়াম মানের ডাবল পকেট কটন চেক শার্ট। স্মার্ট ও রুচিশীল ক্যাজুয়াল লুকের জন্য প্রতিটি ফ্যাশন সচেতন পুরুষের প্রথম পছন্দ।
               </p>
-              
+
               {/* Highlight Features list */}
               <div className="grid grid-cols-2 gap-3 pt-2 max-w-md mx-auto lg:mx-0 text-left">
                 <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center gap-2">
@@ -368,9 +368,8 @@ export default function ShirtLandingPage() {
                   <button
                     key={v.id}
                     onClick={() => setSelectedVariant(v)}
-                    className={`w-12 h-16 rounded-lg border-2 overflow-hidden relative transition-all ${
-                      selectedVariant.id === v.id ? "border-amber-400 scale-105 shadow-md shadow-amber-400/20" : "border-slate-800 hover:border-slate-700"
-                    }`}
+                    className={`w-12 h-16 rounded-lg border-2 overflow-hidden relative transition-all ${selectedVariant.id === v.id ? "border-amber-400 scale-105 shadow-md shadow-amber-400/20" : "border-slate-800 hover:border-slate-700"
+                      }`}
                   >
                     <Image src={v.image} alt={v.name} fill className="object-cover" />
                   </button>
@@ -386,7 +385,7 @@ export default function ShirtLandingPage() {
       <section className="py-12 md:py-16 bg-slate-900 border-y border-slate-800">
         <div className="max-w-[1200px] mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-            
+
             {/* Spotlight Image grid or slide */}
             <div className="relative aspect-[3/4] max-w-sm mx-auto w-full bg-slate-950 rounded-3xl overflow-hidden border border-slate-800 shadow-xl group">
               <Image
@@ -406,7 +405,7 @@ export default function ShirtLandingPage() {
               <h2 className="text-3xl font-extrabold text-white leading-tight uppercase">
                 ইজি ম্যান প্রিমিয়াম ডাবল পকেট শার্ট
               </h2>
-              
+
               {/* Pricing Tag */}
               <div className="flex items-baseline gap-4">
                 <span className="text-3xl md:text-4xl font-black text-amber-400">৳৫৫০</span>
@@ -473,7 +472,7 @@ export default function ShirtLandingPage() {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            
+
             {/* Benefit 1 */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 text-left space-y-3 group hover:border-amber-400/30 transition-all duration-300">
               <div className="w-12 h-12 rounded-xl bg-amber-400/15 text-amber-400 flex items-center justify-center">
@@ -563,7 +562,7 @@ export default function ShirtLandingPage() {
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
+
             {/* Left Column Features */}
             <div className="lg:col-span-4 space-y-6 md:space-y-10 text-center lg:text-right order-2 lg:order-1">
               <div className="space-y-2">
@@ -622,7 +621,7 @@ export default function ShirtLandingPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* Review 1 */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-850 shadow-sm space-y-4">
               <div className="flex items-center gap-1 text-amber-400 font-bold">
@@ -701,9 +700,8 @@ export default function ShirtLandingPage() {
                 <button
                   key={variant.id}
                   onClick={() => selectVariant(variant)}
-                  className={`bg-slate-950 p-4 rounded-2xl border-2 text-center transition-all cursor-pointer relative group flex flex-col items-center gap-4 ${
-                    isSelected ? "border-amber-400 bg-amber-400/5 shadow-md scale-[1.02]" : "border-slate-800 hover:border-slate-700"
-                  }`}
+                  className={`bg-slate-950 p-4 rounded-2xl border-2 text-center transition-all cursor-pointer relative group flex flex-col items-center gap-4 ${isSelected ? "border-amber-400 bg-amber-400/5 shadow-md scale-[1.02]" : "border-slate-800 hover:border-slate-700"
+                    }`}
                 >
                   {/* Selected Tick Indicator */}
                   {isSelected && (
@@ -722,9 +720,8 @@ export default function ShirtLandingPage() {
                     <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mt-1">{variant.id} plaid</p>
                   </div>
 
-                  <span className={`px-4 py-2 rounded-xl text-xs font-black w-full border ${
-                    isSelected ? "bg-amber-400 text-slate-950 border-transparent" : "bg-slate-900 text-slate-300 border-slate-800 group-hover:bg-slate-850"
-                  }`}>
+                  <span className={`px-4 py-2 rounded-xl text-xs font-black w-full border ${isSelected ? "bg-amber-400 text-slate-950 border-transparent" : "bg-slate-900 text-slate-300 border-slate-800 group-hover:bg-slate-850"
+                    }`}>
                     {isSelected ? "সিলেক্ট করা হয়েছে" : "সিলেক্ট করুন"}
                   </span>
                 </button>
@@ -748,7 +745,7 @@ export default function ShirtLandingPage() {
           </div>
 
           <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
+
             {/* Left Column: Shipping Address & Payment */}
             <div className="lg:col-span-7 bg-slate-900 p-6 md:p-8 rounded-2xl border border-slate-850 shadow-sm space-y-6">
               <div>
@@ -785,11 +782,10 @@ export default function ShirtLandingPage() {
                         }
                         setPhone(val.slice(0, 11));
                       }}
-                      className={`w-full bg-slate-950 border rounded-xl p-3.5 text-sm outline-none transition-all text-slate-100 ${
-                        phone && (phone.length !== 11 || !phone.startsWith("01"))
+                      className={`w-full bg-slate-950 border rounded-xl p-3.5 text-sm outline-none transition-all text-slate-100 ${phone && (phone.length !== 11 || !phone.startsWith("01"))
                           ? "border-red-500 focus:border-red-500"
                           : "border-slate-800 focus:border-amber-400"
-                      }`}
+                        }`}
                     />
                     {phone && (phone.length !== 11 || !phone.startsWith("01")) && (
                       <p className="text-[10px] text-red-500 font-semibold mt-1">
@@ -836,9 +832,8 @@ export default function ShirtLandingPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("cod")}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
-                      paymentMethod === "cod" ? "border-amber-400 bg-amber-400/5 font-bold" : "border-slate-800 hover:border-slate-700"
-                    }`}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${paymentMethod === "cod" ? "border-amber-400 bg-amber-400/5 font-bold" : "border-slate-800 hover:border-slate-700"
+                      }`}
                   >
                     <HugeiconsIcon icon={Agreement01Icon} size={24} className="mb-1 text-amber-400" />
                     <span className="text-xs text-slate-300">ক্যাশ অন ডেলিভারি</span>
@@ -848,9 +843,8 @@ export default function ShirtLandingPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("bkash")}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
-                      paymentMethod === "bkash" ? "border-pink-500 bg-pink-50/10 font-bold" : "border-slate-800 hover:border-slate-700"
-                    }`}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${paymentMethod === "bkash" ? "border-pink-500 bg-pink-50/10 font-bold" : "border-slate-800 hover:border-slate-700"
+                      }`}
                   >
                     <div className="w-10 h-6 relative mb-1">
                       <Image src="/bkash_logo.png" alt="bKash" fill className="object-contain" />
@@ -862,9 +856,8 @@ export default function ShirtLandingPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("nagad")}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
-                      paymentMethod === "nagad" ? "border-orange-500 bg-orange-50/10 font-bold" : "border-slate-800 hover:border-slate-700"
-                    }`}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${paymentMethod === "nagad" ? "border-orange-500 bg-orange-50/10 font-bold" : "border-slate-800 hover:border-slate-700"
+                      }`}
                   >
                     <div className="w-10 h-6 relative mb-1">
                       <Image src="/nagad_logo.png" alt="Nagad" fill className="object-contain" />
@@ -876,9 +869,8 @@ export default function ShirtLandingPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("rocket")}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
-                      paymentMethod === "rocket" ? "border-purple-600 bg-purple-50/10 font-bold" : "border-slate-800 hover:border-slate-700"
-                    }`}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer ${paymentMethod === "rocket" ? "border-purple-600 bg-purple-50/10 font-bold" : "border-slate-800 hover:border-slate-700"
+                      }`}
                   >
                     <div className="w-10 h-6 relative mb-1">
                       <Image src="/rocket_logo.png" alt="Rocket" fill className="object-contain" />
@@ -993,9 +985,8 @@ export default function ShirtLandingPage() {
                           key={sz.id}
                           type="button"
                           onClick={() => toggleSize(sz)}
-                          className={`py-2 px-1 text-xs font-black rounded-lg border text-center transition-all ${
-                            isSzSelected ? "border-amber-400 bg-amber-400/10 text-amber-400 font-bold" : "border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700"
-                          }`}
+                          className={`py-2 px-1 text-xs font-black rounded-lg border text-center transition-all ${isSzSelected ? "border-amber-400 bg-amber-400/10 text-amber-400 font-bold" : "border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700"
+                            }`}
                         >
                           {sz.name.split(" ")[0]}
                         </button>
@@ -1013,9 +1004,8 @@ export default function ShirtLandingPage() {
                 <div className="py-2 space-y-2">
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">ডেলিভারি এরিয়া নির্বাচন করুন</h4>
                   <div className="grid grid-cols-2 gap-3">
-                    <label className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                      deliveryOption === "inside" ? "border-amber-400 bg-amber-400/5 font-bold" : "border-slate-800 bg-slate-950 hover:border-slate-750"
-                    }`}>
+                    <label className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${deliveryOption === "inside" ? "border-amber-400 bg-amber-400/5 font-bold" : "border-slate-800 bg-slate-950 hover:border-slate-750"
+                      }`}>
                       <input
                         type="radio"
                         name="delivery_loc"
@@ -1026,9 +1016,8 @@ export default function ShirtLandingPage() {
                       <span className="text-xs text-slate-200">ঢাকার ভিতরে (৳৭০)</span>
                     </label>
 
-                    <label className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                      deliveryOption === "outside" ? "border-amber-400 bg-amber-400/5 font-bold" : "border-slate-800 bg-slate-950 hover:border-slate-750"
-                    }`}>
+                    <label className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${deliveryOption === "outside" ? "border-amber-400 bg-amber-400/5 font-bold" : "border-slate-800 bg-slate-950 hover:border-slate-750"
+                      }`}>
                       <input
                         type="radio"
                         name="delivery_loc"

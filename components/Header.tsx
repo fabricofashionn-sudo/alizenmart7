@@ -2,18 +2,38 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { useCart } from "@/context/CartContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TruckDeliveryIcon, ShoppingCart01Icon, UserIcon } from "@hugeicons/core-free-icons";
+import { supabase } from "@/lib/supabase";
 
 const Header = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { totalItems } = useCart();
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchHeaderCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("*")
+          .order("sort_order", { ascending: true });
+
+        if (data && !error && data.length > 0) {
+          setDbCategories(data);
+        }
+      } catch (err) {
+        console.error("Failed to load header categories:", err);
+      }
+    };
+    fetchHeaderCategories();
+  }, []);
 
   const handleSearchSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -22,24 +42,33 @@ const Header = () => {
     }
   };
 
-  const categories = [
-    { name: "Gadgets", hasSub: true, slug: "gadgets" },
-    { name: "Smart Electronics", hasSub: true, slug: "smart-electronics" },
-    { name: "Home & Lifestyle", hasSub: true, slug: "home-lifestyle" },
-    { name: "Beauty & Personal", hasSub: true, slug: "beauty-personal" },
-    { name: "Healthy Food", hasSub: true, slug: "healthy-food" },
-    { name: "Fashion", hasSub: true, slug: "fashion" },
-    { name: "Mom & Baby", hasSub: true, slug: "mom-baby" },
-    { name: "Home & Kitchen", hasSub: true, slug: "home-kitchen" },
-    { name: "Appliances", hasSub: true, slug: "appliances" },
-    { name: "Fitness & Health", hasSub: true, slug: "fitness-health" },
-    { name: "Smart Watch", hasSub: false, slug: "smart-watch" },
-    { name: "Religious", hasSub: true, slug: "religious" },
-    { name: "Peripherals", hasSub: true, slug: "peripherals" },
-    { name: "Smart Furniture", hasSub: false, slug: "smart-furniture" },
-    { name: "Books", hasSub: true, slug: "books" },
-    { name: "Others", hasSub: false, slug: "others" },
+  const fallbackCategories = [
+    { id: "1", name: "Gadgets", slug: "gadgets", parent_id: null },
+    { id: "2", name: "Smart Electronics", slug: "smart-electronics", parent_id: null },
+    { id: "3", name: "Home & Lifestyle", slug: "home-lifestyle", parent_id: null },
+    { id: "4", name: "Beauty & Personal", slug: "beauty-personal", parent_id: null },
+    { id: "5", name: "Healthy Food", slug: "healthy-food", parent_id: null },
+    { id: "6", name: "Fashion", slug: "fashion", parent_id: null },
+    { id: "7", name: "Mom & Baby", slug: "mom-baby", parent_id: null },
+    { id: "8", name: "Home & Kitchen", slug: "home-kitchen", parent_id: null },
+    { id: "9", name: "Appliances", slug: "appliances", parent_id: null },
+    { id: "10", name: "Fitness & Health", slug: "fitness-health", parent_id: null },
   ];
+
+  const activeList = dbCategories.length > 0 ? dbCategories : fallbackCategories;
+
+  // Separate root categories and map children under parents
+  const rootCategories = activeList.filter((c) => !c.parent_id);
+  const subCategoryMap: Record<string, any[]> = {};
+  activeList.forEach((c) => {
+    if (c.parent_id) {
+      const pId = String(c.parent_id);
+      if (!subCategoryMap[pId]) {
+        subCategoryMap[pId] = [];
+      }
+      subCategoryMap[pId].push(c);
+    }
+  });
 
   return (
     <header className="w-full sticky top-0 z-50">
@@ -80,22 +109,35 @@ const Header = () => {
 
         {/* Drawer Body - Categories */}
         <div className="flex-1 overflow-y-auto no-scrollbar">
-          {categories.map((cat, index) => (
-            <div key={index} className="border-b border-gray-100">
-              <Link 
-                href={`/category/${cat.slug}`} 
-                className="flex items-center justify-between p-3.5 hover:bg-gray-50 transition-colors"
-                onClick={() => setIsDrawerOpen(false)}
-              >
-                <span className="text-sm font-medium text-gray-700">{cat.name}</span>
-                {cat.hasSub && (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-gray-400">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
+          {rootCategories.map((cat, index) => {
+            const subs = subCategoryMap[cat.id] || [];
+            const hasSubs = subs.length > 0;
+            return (
+              <div key={index} className="border-b border-gray-100">
+                <Link 
+                  href={`/category/${cat.slug}`} 
+                  className="flex items-center justify-between p-3.5 hover:bg-gray-50 transition-colors font-semibold"
+                  onClick={() => setIsDrawerOpen(false)}
+                >
+                  <span className="text-sm text-gray-800">{cat.name}</span>
+                </Link>
+                {hasSubs && (
+                  <div className="bg-gray-50/50 pl-6 pb-2">
+                    {subs.map((sub: any, subIndex: number) => (
+                      <Link
+                        key={subIndex}
+                        href={`/category/${sub.slug}`}
+                        className="block py-2 text-xs font-medium text-gray-600 hover:text-[#FF5722]"
+                        onClick={() => setIsDrawerOpen(false)}
+                      >
+                        • {sub.name}
+                      </Link>
+                    ))}
+                  </div>
                 )}
-              </Link>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         {/* Drawer Footer */}
@@ -214,17 +256,45 @@ const Header = () => {
         </div>
       </div>
 
+      {/* Desktop Sub Navigation */}
       <div className="hidden md:block bg-white border-b border-gray-100 shadow-sm overflow-x-auto no-scrollbar">
         <div className="container-custom flex items-center justify-between gap-4 py-3 text-[14px] font-bold text-gray-700 whitespace-nowrap">
-          {categories.slice(0, 10).map((cat, index) => (
-            <Link 
-              key={index}
-              href={`/category/${cat.slug}`} 
-              className="hover:text-primary transition-colors"
-            >
-              {cat.name}
-            </Link>
-          ))}
+          {rootCategories.slice(0, 10).map((cat, index) => {
+            const subs = subCategoryMap[cat.id] || [];
+            const hasSubs = subs.length > 0;
+
+            return (
+              <div key={index} className="relative group py-1">
+                <Link 
+                  href={`/category/${cat.slug}`} 
+                  className="hover:text-[#FF5722] flex items-center gap-1 transition-colors py-1"
+                >
+                  <span>{cat.name}</span>
+                  {hasSubs && (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-gray-400 group-hover:text-[#FF5722] transition-colors">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  )}
+                </Link>
+
+                {hasSubs && (
+                  <div className="absolute top-full left-0 bg-white border border-gray-100 rounded-xl shadow-xl py-3 px-4 min-w-[200px] hidden group-hover:block z-50">
+                    <div className="flex flex-col gap-2.5">
+                      {subs.map((sub: any, subIndex: number) => (
+                        <Link
+                          key={subIndex}
+                          href={`/category/${sub.slug}`}
+                          className="text-xs text-gray-600 hover:text-[#FF5722] font-semibold transition-colors"
+                        >
+                          {sub.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </header>

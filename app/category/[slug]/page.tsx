@@ -2,32 +2,47 @@ import { supabase } from "@/lib/supabase";
 import CategoryClient from "./CategoryClient";
 import type { Metadata } from "next";
 
-const slugToNameMap: Record<string, string> = {
-  "gadgets": "Gadgets",
-  "smart-electronics": "Smart Electronics",
-  "home-lifestyle": "Home & Lifestyle",
-  "beauty-personal": "Beauty & Personal",
-  "healthy-food": "Healthy Food",
-  "fashion": "Fashion",
-  "mom-baby": "Mom & Baby",
-  "home-kitchen": "Home & Kitchen",
-  "appliances": "Appliances",
-  "fitness-health": "Fitness & Health",
-  "smart-watch": "Smart Watch",
-  "religious": "Religious",
-  "peripherals": "Peripherals",
-  "smart-furniture": "Smart Furniture",
-  "books": "Books",
-  "others": "Others",
-};
+async function getCategoryNameFromDb(slug: string) {
+  try {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("name")
+      .eq("slug", slug)
+      .single();
 
-const getCategoryName = (slug: string) => {
+    if (data && !error) {
+      return data.name;
+    }
+  } catch (err) {
+    console.error("Failed to fetch category name from database:", err);
+  }
+
+  // Fallback map
+  const slugToNameMap: Record<string, string> = {
+    "gadgets": "Gadgets",
+    "smart-electronics": "Smart Electronics",
+    "home-lifestyle": "Home & Lifestyle",
+    "beauty-personal": "Beauty & Personal",
+    "healthy-food": "Healthy Food",
+    "fashion": "Fashion",
+    "mom-baby": "Mom & Baby",
+    "home-kitchen": "Home & Kitchen",
+    "appliances": "Appliances",
+    "fitness-health": "Fitness & Health",
+    "smart-watch": "Smart Watch",
+    "religious": "Religious",
+    "peripherals": "Peripherals",
+    "smart-furniture": "Smart Furniture",
+    "books": "Books",
+    "others": "Others",
+  };
+
   if (slugToNameMap[slug]) return slugToNameMap[slug];
   return slug
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
-};
+}
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -40,7 +55,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : "";
-  const categoryName = getCategoryName(decodedSlug);
+  const categoryName = await getCategoryNameFromDb(decodedSlug);
 
   return {
     title: `${categoryName} - Buy Online at Best Price in Bangladesh`,
@@ -80,7 +95,7 @@ async function getCategoryProducts(categoryName: string) {
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : "";
-  const categoryName = getCategoryName(decodedSlug);
+  const categoryName = await getCategoryNameFromDb(decodedSlug);
 
   const products = await getCategoryProducts(categoryName);
 

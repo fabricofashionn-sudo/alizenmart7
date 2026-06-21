@@ -22,12 +22,40 @@ export default function EditProductClient({ id }: EditProductClientProps) {
     title: "",
     price: "",
     oldPrice: "",
-    category: "Gadgets",
+    category: "",
     stock: "10",
     image: "",
     description: "",
     is_featured: false,
   });
+
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("name")
+        .order("name", { ascending: true });
+
+      if (data && !error && data.length > 0) {
+        setCategories(data.map((c: any) => c.name));
+      } else {
+        setCategories([
+          "Gadgets", "Smart Electronics", "Home & Lifestyle", "Beauty & Personal", 
+          "Healthy Food", "Fashion", "Mom & Baby", "Home & Kitchen", "Appliances", 
+          "Fitness & Health", "Smart Watch", "Religious", "Peripherals", 
+          "Smart Furniture", "Books", "Others"
+        ]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+    }
+  };
 
   const fetchProduct = useCallback(async () => {
     try {
@@ -123,12 +151,7 @@ export default function EditProductClient({ id }: EditProductClientProps) {
     }
   };
 
-  const categories = [
-    "Gadgets", "Smart Electronics", "Home & Lifestyle", "Beauty & Personal", 
-    "Healthy Food", "Fashion", "Mom & Baby", "Home & Kitchen", "Appliances", 
-    "Fitness & Health", "Smart Watch", "Religious", "Peripherals", 
-    "Smart Furniture", "Books", "Others"
-  ];
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

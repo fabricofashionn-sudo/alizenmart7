@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -17,12 +17,44 @@ export default function AddProduct() {
     title: "",
     price: "",
     oldPrice: "",
-    category: "Gadgets",
+    category: "",
     stock: "10",
     image: "",
     description: "",
     is_featured: false,
   });
+
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("name")
+        .order("name", { ascending: true });
+
+      if (data && !error && data.length > 0) {
+        const catNames = data.map((c: any) => c.name);
+        setCategories(catNames);
+        setFormData(prev => ({ ...prev, category: catNames[0] }));
+      } else {
+        const fallback = [
+          "Gadgets", "Smart Electronics", "Home & Lifestyle", "Beauty & Personal", 
+          "Healthy Food", "Fashion", "Mom & Baby", "Home & Kitchen", "Appliances", 
+          "Fitness & Health", "Smart Watch", "Religious", "Peripherals", 
+          "Smart Furniture", "Books", "Others"
+        ];
+        setCategories(fallback);
+        setFormData(prev => ({ ...prev, category: fallback[0] }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -78,12 +110,7 @@ export default function AddProduct() {
     }
   };
 
-  const categories = [
-    "Gadgets", "Smart Electronics", "Home & Lifestyle", "Beauty & Personal", 
-    "Healthy Food", "Fashion", "Mom & Baby", "Home & Kitchen", "Appliances", 
-    "Fitness & Health", "Smart Watch", "Religious", "Peripherals", 
-    "Smart Furniture", "Books", "Others"
-  ];
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

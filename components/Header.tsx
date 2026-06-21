@@ -257,44 +257,101 @@ const Header = () => {
       </div>
 
       {/* Desktop Sub Navigation */}
-      <div className="hidden md:block bg-white border-b border-gray-100 shadow-sm overflow-x-auto no-scrollbar">
-        <div className="container-custom flex items-center justify-between gap-4 py-3 text-[14px] font-bold text-gray-700 whitespace-nowrap">
-          {rootCategories.slice(0, 10).map((cat, index) => {
-            const subs = subCategoryMap[cat.id] || [];
-            const hasSubs = subs.length > 0;
+      <div className="hidden md:block bg-white border-b border-gray-100 shadow-sm overflow-hidden">
+        <div className="container-custom max-w-[1000px] overflow-hidden relative py-3 text-[14px] font-bold text-gray-700 select-none">
+          <style>{`
+            @keyframes marqueeRightToLeft {
+              0% { transform: translateX(0%); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-marquee-rtl {
+              display: flex;
+              width: max-content;
+              gap: 3rem;
+              animation: marqueeRightToLeft 80s linear infinite;
+            }
+            .animate-marquee-rtl:hover {
+              animation-play-state: paused;
+            }
+          `}</style>
+          
+          <div className="animate-marquee-rtl">
+            {/* Set 1 */}
+            {rootCategories.map((cat, index) => {
+              const subs = subCategoryMap[cat.id] || [];
+              const hasSubs = subs.length > 0;
 
-            return (
-              <div key={index} className="relative group py-1">
-                <Link 
-                  href={`/category/${cat.slug}`} 
-                  className="hover:text-[#FF5722] flex items-center gap-1 transition-colors py-1"
-                >
-                  <span>{cat.name}</span>
+              return (
+                <div key={`s1-${cat.id || index}`} className="relative group py-1">
+                  <Link 
+                    href={`/category/${cat.slug}`} 
+                    className="hover:text-[#FF5722] flex items-center gap-1 transition-colors py-1"
+                  >
+                    <span>{cat.name}</span>
+                    {hasSubs && (
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-gray-400 group-hover:text-[#FF5722] transition-colors">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    )}
+                  </Link>
+
                   {hasSubs && (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-gray-400 group-hover:text-[#FF5722] transition-colors">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  )}
-                </Link>
-
-                {hasSubs && (
-                  <div className="absolute top-full left-0 bg-white border border-gray-100 rounded-xl shadow-xl py-3 px-4 min-w-[200px] hidden group-hover:block z-50">
-                    <div className="flex flex-col gap-2.5">
-                      {subs.map((sub: any, subIndex: number) => (
-                        <Link
-                          key={subIndex}
-                          href={`/category/${sub.slug}`}
-                          className="text-xs text-gray-600 hover:text-[#FF5722] font-semibold transition-colors"
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
+                    <div className="absolute top-full left-0 bg-white border border-gray-100 rounded-xl shadow-xl py-3 px-4 w-max min-w-[180px] max-w-[250px] hidden group-hover:block z-50">
+                      <div className="flex flex-col gap-2.5">
+                        {subs.map((sub: any, subIndex: number) => (
+                          <Link
+                            key={subIndex}
+                            href={`/category/${sub.slug}`}
+                            className="text-xs text-gray-600 hover:text-[#FF5722] font-semibold transition-colors"
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Set 2 (Duplicate for Infinite loop) */}
+            {rootCategories.map((cat, index) => {
+              const subs = subCategoryMap[cat.id] || [];
+              const hasSubs = subs.length > 0;
+
+              return (
+                <div key={`s2-${cat.id || index}`} className="relative group py-1">
+                  <Link 
+                    href={`/category/${cat.slug}`} 
+                    className="hover:text-[#FF5722] flex items-center gap-1 transition-colors py-1"
+                  >
+                    <span>{cat.name}</span>
+                    {hasSubs && (
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-gray-400 group-hover:text-[#FF5722] transition-colors">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    )}
+                  </Link>
+
+                  {hasSubs && (
+                    <div className="absolute top-full left-0 bg-white border border-gray-100 rounded-xl shadow-xl py-3 px-4 w-max min-w-[180px] max-w-[250px] hidden group-hover:block z-50">
+                      <div className="flex flex-col gap-2.5">
+                        {subs.map((sub: any, subIndex: number) => (
+                          <Link
+                            key={subIndex}
+                            href={`/category/${sub.slug}`}
+                            className="text-xs text-gray-600 hover:text-[#FF5722] font-semibold transition-colors"
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </header>

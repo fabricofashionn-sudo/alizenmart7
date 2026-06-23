@@ -88,12 +88,146 @@ const TSHIRT_VARIANTS = [
   }
 ];
 
-const KHIMAR_SIZES = [
-  { id: "40", name: "40 (লম্বা ৪০ ইঞ্চি, পিছনে ৪৫ ইঞ্চি)" },
-  { id: "42", name: "42 (লম্বা ৪২ ইঞ্চি, পিছনে ৪৭ ইঞ্চি)" },
-  { id: "44", name: "44 (লম্বা ৪৪ ইঞ্চি, পিছনে ৪৯ ইঞ্চি)" },
-  { id: "46", name: "46 (লম্বা ৪৬ ইঞ্চি, পিছনে ৫১ ইঞ্চি)" },
+const TSHIRT_SIZES = [
+  { id: "M", name: "M (Chest 38, Length 27)" },
+  { id: "L", name: "L (Chest 40, Length 28)" },
+  { id: "XL", name: "XL (Chest 42, Length 29)" },
+  { id: "2XL", name: "2XL (Chest 44, Length 30)" },
 ];
+
+interface TShirtCardProps {
+  variant: typeof TSHIRT_VARIANTS[0];
+  isSelected: boolean;
+  onSelect: (variant: typeof TSHIRT_VARIANTS[0]) => void;
+}
+
+function TShirtCard({ variant, isSelected, onSelect }: TShirtCardProps) {
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  // Auto-slide for this card
+  useEffect(() => {
+    if (variant.images.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveIdx((prev) => (prev + 1) % variant.images.length);
+    }, 4500 + Math.random() * 1000); // stagger slightly so they don't slide simultaneously
+    return () => clearInterval(timer);
+  }, [variant]);
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveIdx((prev) => (prev + 1) % variant.images.length);
+  };
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveIdx((prev) => (prev - 1 + variant.images.length) % variant.images.length);
+  };
+
+  return (
+    <div
+      className={`bg-white rounded-2xl border-2 transition-all p-4 flex flex-col gap-4 relative shadow-sm hover:shadow-md h-full ${
+        isSelected ? "border-[#FF5722] bg-[#FF5722]/5" : "border-slate-200"
+      }`}
+    >
+      {/* Badge Code */}
+      <span className="absolute top-4 left-4 bg-[#0B5A70] text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+        Code: {variant.code}
+      </span>
+
+      {/* Tick Indicator */}
+      {isSelected && (
+        <div className="absolute top-4 right-4 bg-[#FF5722] text-white rounded-full p-1 shadow flex items-center justify-center z-10">
+          <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={3} />
+        </div>
+      )}
+
+      {/* Main image viewer for the card */}
+      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 border border-slate-100 group">
+        
+        {/* Images slider */}
+        <div className="absolute inset-0">
+          {variant.images.map((img, idx) => (
+            <div
+              key={idx}
+              className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
+                activeIdx === idx ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
+            >
+              <Image
+                src={img}
+                alt={`${variant.name} - ${idx}`}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Left/Right Control Arrows */}
+        {variant.images.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/30 hover:bg-slate-900/60 text-white flex items-center justify-center transition-all duration-200 z-20 shadow-md cursor-pointer border border-white/10 active:scale-95 opacity-0 group-hover:opacity-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNext}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/30 hover:bg-slate-900/60 text-white flex items-center justify-center transition-all duration-200 z-20 shadow-md cursor-pointer border border-white/10 active:scale-95 opacity-0 group-hover:opacity-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Sub-thumbnails (interactive row) */}
+      <div className="flex gap-2 justify-center">
+        {variant.images.map((img, imgIdx) => (
+          <button
+            key={imgIdx}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveIdx(imgIdx);
+            }}
+            className={`w-10 h-12 rounded border overflow-hidden relative transition-all cursor-pointer ${
+              activeIdx === imgIdx ? "border-[#FF5722] scale-105" : "border-slate-200 hover:border-slate-350"
+            }`}
+          >
+            <Image src={img} alt={`Thumb ${imgIdx}`} fill className="object-cover" />
+          </button>
+        ))}
+      </div>
+
+      <div>
+        <h3 className="font-extrabold text-[#0B5A70] text-base md:text-lg">{variant.name}</h3>
+        <div className="flex justify-center items-baseline gap-2 mt-1">
+          <span className="text-[#FF5722] font-black text-lg">৳১,৪৫০</span>
+          <span className="text-xs text-slate-400 line-through">৳১,৮০০</span>
+        </div>
+      </div>
+
+      <button
+        onClick={() => onSelect(variant)}
+        className={`w-full py-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+          isSelected
+            ? "bg-[#FF5722] hover:bg-[#e64a19] text-white border-transparent"
+            : "bg-[#0B5A70]/10 hover:bg-[#0B5A70]/20 text-[#0B5A70] border-transparent"
+        }`}
+      >
+        {isSelected ? "অর্ডার ফর্মে সিলেক্ট করা আছে" : "কম্বোটি নির্বাচন করুন"}
+      </button>
+    </div>
+  );
+}
 
 export default function KhimarLandingPage() {
   const router = useRouter();
@@ -111,10 +245,10 @@ export default function KhimarLandingPage() {
   // Selected Product Configuration
   const [selectedVariant, setSelectedVariant] = useState(TSHIRT_VARIANTS[0]);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [selectedSizes, setSelectedSizes] = useState<typeof KHIMAR_SIZES>([KHIMAR_SIZES[1]]); // Default 42
+  const [selectedSizes, setSelectedSizes] = useState<typeof TSHIRT_SIZES>([TSHIRT_SIZES[1]]); // Default L
   const [quantity, setQuantity] = useState(1);
 
-  const toggleSize = (size: typeof KHIMAR_SIZES[0]) => {
+  const toggleSize = (size: typeof TSHIRT_SIZES[0]) => {
     if (selectedSizes.some((s) => s.id === size.id)) {
       setSelectedSizes(selectedSizes.filter((s) => s.id !== size.id));
     } else {
@@ -143,6 +277,25 @@ export default function KhimarLandingPage() {
   useEffect(() => {
     setActiveImageIndex(0);
   }, [selectedVariant]);
+
+  // Auto-slide for product showcase images
+  useEffect(() => {
+    if (selectedVariant.images.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % selectedVariant.images.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [selectedVariant]);
+
+  const nextImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setActiveImageIndex((prev) => (prev + 1) % selectedVariant.images.length);
+  };
+
+  const prevImage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setActiveImageIndex((prev) => (prev - 1 + selectedVariant.images.length) % selectedVariant.images.length);
+  };
 
   // Check if user is logged in
   useEffect(() => {
@@ -234,11 +387,11 @@ export default function KhimarLandingPage() {
         payment_method: paymentMethod,
         bkash_number: paymentMethod !== "cod" ? bkashNumber : null,
         transaction_id: paymentMethod !== "cod" ? transactionId : null,
-        notes: `Khimar Combo Code: ${selectedVariant.code} | Sizes: ${selectedSizes.map(sz => sz.name.split(" ")[0]).join(", ")} | ${orderNote}` +
+        notes: `T-Shirt Combo Code: ${selectedVariant.code} | Sizes: ${selectedSizes.map(sz => sz.name.split(" ")[0]).join(", ")} | ${orderNote}` +
           (paymentMethod !== "cod" && paymentMethod !== "bkash" ? ` [${paymentMethod.toUpperCase()} Pay: ${bkashNumber}, TrxID: ${transactionId}]` : ""),
         items: selectedSizes.map(sz => ({
           id: `khimar-${selectedVariant.id}-${sz.id}`,
-          title: `প্রিমিয়াম চায়না ফেব্রিক্স খিমার কম্বো - ${selectedVariant.code} (Size: ${sz.name.split(" ")[0]})`,
+          title: `প্রিমিয়াম চায়না ফেব্রিক্স টি-শার্ট কম্বো - ${selectedVariant.code} (Size: ${sz.name.split(" ")[0]})`,
           price: unitPrice,
           quantity: quantity,
           image: selectedVariant.images[0]
@@ -308,7 +461,7 @@ export default function KhimarLandingPage() {
       {/* Top Banner */}
       <div className="bg-[#0B5A70] text-white text-center py-2.5 px-4 font-bold text-xs md:text-sm tracking-wide shadow-md flex items-center justify-center gap-2 relative overflow-hidden">
         <span className="bg-[#FF5722] text-white px-2 py-0.5 rounded text-[10px] uppercase font-bold animate-pulse">ধামাকা অফার</span>
-        <span>২ বা তার বেশি কম্বো অর্ডারে ডেলিভারি চার্জ সম্পূর্ণ ফ্রি! প্রিমিয়াম খিমার কম্বো মাত্র ১৪৫০ টাকা!</span>
+        <span>২ বা তার বেশি কম্বো অর্ডারে ডেলিভারি চার্জ সম্পূর্ণ ফ্রি! প্রিমিয়াম টি-শার্ট কম্বো মাত্র ১৪৫০ টাকা!</span>
       </div>
 
       {/* Navigation Header */}
@@ -345,14 +498,14 @@ export default function KhimarLandingPage() {
             {/* Left Content */}
             <ScrollReveal animation="fade-right" duration={800} delay={100} className="lg:col-span-7 space-y-6 text-center lg:text-left">
               <span className="inline-flex items-center gap-1.5 bg-[#0B5A70]/10 border border-[#0B5A70]/20 text-[#0B5A70] px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                👑 PREMIUM BEXI VOILE KHIMAR
+                👑 PREMIUM CHINA FABRIC T-SHIRT
               </span>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#0B5A70] leading-tight">
-                আমাদের প্রিমিয়াম খিমারগুলো <br />
-                <span className="text-[#FF5722]">সাধারণ লোকাল খিমার থেকে আলাদা!</span>
+                কেন আমাদের টি-শার্টগুলো <br />
+                <span className="text-[#FF5722]">সাধারণ লোকাল টি-শার্ট থেকে আলাদা?</span>
               </h1>
               <p className="text-sm md:text-base text-slate-650/80 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
-                প্রিমিয়াম সুতি বেক্সি ভয়েল কাপড়ে তৈরি আমাদের খিমারগুলো আপনাকে দেবে রাজকীয় আরাম ও শালীন লুক। সহজে রং উঠবে না, গরমে অত্যন্ত আরামদায়ক এবং সহজে কুঁচকে যায় না।
+                হাই-কোয়ালিটি ইম্পোর্টেড চায়না ফেব্রিক্স কাপড়ে তৈরি আমাদের টি-শার্টগুলো আপনাকে দেবে রাজকীয় আরাম ও এলিট লুক। সহজে কুঁচকে যায় না, গরমে অত্যন্ত আরামদায়ক এবং সফট ফেব্রিক্সের নিশ্চয়তা।
               </p>
 
               {/* Price Tag */}
@@ -371,8 +524,8 @@ export default function KhimarLandingPage() {
                     <HugeiconsIcon icon={FeatherIcon} size={20} />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#0B5A70]">১০০% সফট সুতি কটন</p>
-                    <p className="text-xs text-slate-500 mt-0.5">অত্যন্ত মোলায়েম ও আরামদায়ক বেক্সি ভয়েল কাপড়</p>
+                    <p className="text-sm font-bold text-[#0B5A70]">প্রিমিয়াম মেটেরিয়াল</p>
+                    <p className="text-xs text-slate-500 mt-0.5">আমরা ব্যবহার করেছি হাই-কোয়ালিটি ইম্পোর্টেড চায়না ফেব্রিক্স, যা সাধারণ কাপড়ের চেয়ে অনেক বেশি প্রিমিয়াম, রিঙ্কলেস (সহজে কুঁচকে যায় না) এবং সফট।</p>
                   </div>
                 </div>
                 <div className="bg-white border border-slate-100 p-4 rounded-xl flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow">
@@ -380,8 +533,8 @@ export default function KhimarLandingPage() {
                     <HugeiconsIcon icon={Shield01Icon} size={20} />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#0B5A70]">পারফেক্ট ফেস কাটিং ও সেলাই</p>
-                    <p className="text-xs text-slate-500 mt-0.5">নিখুঁত ফেস ফিটিং এবং ডাবল স্টিচিং ফিনিশিং</p>
+                    <p className="text-sm font-bold text-[#0B5A70]">পারফেক্ট স্টিচিং ও ফিনিশিং</p>
+                    <p className="text-xs text-slate-500 mt-0.5">প্রতিটি জয়েন্ট এবং সুইং নিখুঁতভাবে করা, যা আপনাকে দেবে একটি এলিট লুক।</p>
                   </div>
                 </div>
                 <div className="bg-white border border-slate-100 p-4 rounded-xl flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow">
@@ -390,7 +543,7 @@ export default function KhimarLandingPage() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-[#0B5A70]">সব জায়গায় মানানসই</p>
-                    <p className="text-xs text-slate-500 mt-0.5">আড্ডা, ট্রাভেলিং কিংবা ক্যাজুয়াল গেট-টুগেদারের জন্য পারফেক্ট</p>
+                    <p className="text-xs text-slate-500 mt-0.5">ফ্রেন্ডদের আড্ডা, ট্রাভেলিং কিংবা ক্যাজুয়াল যেকোনো গেট-টুগেদারে পরার জন্য এটি একদম পারফেক্ট।</p>
                   </div>
                 </div>
                 <div className="bg-white border border-slate-100 p-4 rounded-xl flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow">
@@ -398,8 +551,8 @@ export default function KhimarLandingPage() {
                     <HugeiconsIcon icon={Settings01Icon} size={20} />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#0B5A70]">Value for Money</p>
-                    <p className="text-xs text-slate-500 mt-0.5">অতিরিক্ত ব্র্যান্ড ভ্যালুর নামে বেশি চার্জ না করে সাশ্রয়ী মূল্য</p>
+                    <p className="text-sm font-bold text-[#0B5A70]">টাকার সঠিক মূল্যায়ন (Value for Money)</p>
+                    <p className="text-xs text-slate-500 mt-0.5">আমরা অতিরিক্ত ব্র্যান্ড ভ্যালুর নামে কাস্টমারদের থেকে অতিরিক্ত টাকা নিই না। কোয়ালিটি অনুযায়ী সঠিক ও সাশ্রয়ী মূল্য নিশ্চিত করি।</p>
                   </div>
                 </div>
               </div>
@@ -423,15 +576,54 @@ export default function KhimarLandingPage() {
             {/* Right Showcase Image Viewer */}
             <ScrollReveal animation="fade-left" duration={900} delay={200} className="lg:col-span-5 relative flex flex-col gap-4">
               <div className="relative aspect-[3/4] w-full max-w-sm mx-auto bg-white rounded-3xl overflow-hidden shadow-xl border border-slate-100 group">
-                <Image
-                  src={selectedVariant.images[activeImageIndex]}
-                  alt={selectedVariant.name}
-                  fill
-                  className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
-                <div className="absolute bottom-6 left-6 flex flex-col gap-1">
+                
+                {/* Image Slider Wrapper */}
+                <div className="absolute inset-0">
+                  {selectedVariant.images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                        activeImageIndex === idx ? "opacity-100 z-10" : "opacity-0 z-0"
+                      }`}
+                    >
+                      <Image
+                        src={img}
+                        alt={`${selectedVariant.name} - ${idx}`}
+                        fill
+                        className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                        priority={idx === 0}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Left/Right Control Arrows */}
+                {selectedVariant.images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={prevImage}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/30 hover:bg-slate-900/65 text-white flex items-center justify-center transition-all duration-200 z-20 shadow-md cursor-pointer border border-white/10 active:scale-95"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={nextImage}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/30 hover:bg-slate-900/65 text-white flex items-center justify-center transition-all duration-200 z-20 shadow-md cursor-pointer border border-white/10 active:scale-95"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute bottom-6 left-6 flex flex-col gap-1 z-20 pointer-events-none">
                   <span className="bg-[#FF5722] text-white px-3 py-1 rounded-full text-xs font-bold uppercase inline-block w-fit shadow">Combo Promo</span>
                   <p className="text-white font-extrabold text-lg">{selectedVariant.name}</p>
                 </div>
@@ -478,13 +670,13 @@ export default function KhimarLandingPage() {
                     <div className="bg-[#FF5722]/10 text-[#FF5722] rounded-full p-0.5 mt-0.5">
                       <HugeiconsIcon icon={Tick01Icon} size={16} strokeWidth={3} />
                     </div>
-                    <span>ডেলিভারি ম্যানের সামনে প্রোডাক্টটি লাইভ দেখে, ফেব্রিক্স কোয়ালিটি পরখ করে পেমেন্ট করুন।</span>
+                    <span>দেখে নেওয়ার সুযোগ: ডেলিভারি ম্যানের সামনে প্রোডাক্টটি লাইভ দেখে, ফেব্রিক্স চেক করে পছন্দ হলে তারপর টাকা পে করবেন।</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <div className="bg-[#FF5722]/10 text-[#FF5722] rounded-full p-0.5 mt-0.5">
                       <HugeiconsIcon icon={Tick01Icon} size={16} strokeWidth={3} />
                     </div>
-                    <span>সাইজ ছোট-বড় হলে কোনো চিন্তা নেই! দ্রুত সাইজ এক্সচেঞ্জ সুবিধা পাবেন।</span>
+                    <span>সাইজ এক্সচেঞ্জ সুবিধা: সাইজ ছোট-বড় হলে কোনো চিন্তা নেই! আমাদের সাথে যোগাযোগ করলে দ্রুত সাইজ চেঞ্জ করে দেওয়া হবে।</span>
                   </li>
                 </ul>
               </div>
@@ -495,16 +687,16 @@ export default function KhimarLandingPage() {
                 <div className="w-10 h-10 rounded-xl bg-[#0B5A70]/10 text-[#0B5A70] flex items-center justify-center mx-auto md:mx-0">
                   <HugeiconsIcon icon={Shield01Icon} size={22} />
                 </div>
-                <h3 className="font-bold text-[#0B5A70] text-sm md:text-base">লাইভ প্রোডাক্ট চেক</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">ডেলিভারি ম্যানের সামনে প্রোডাক্ট চেক করে ভালো লাগলে তবেই রিসিভ করবেন।</p>
+                <h3 className="font-bold text-[#0B5A70] text-sm md:text-base">দেখে নেওয়ার সুযোগ</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">ডেলিভারি ম্যানের সামনে প্রোডাক্টটি লাইভ দেখে, ফেব্রিক্স চেক করে পছন্দ হলে তারপর টাকা পে করবেন।</p>
               </div>
 
               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-2 text-center md:text-left">
                 <div className="w-10 h-10 rounded-xl bg-[#0B5A70]/10 text-[#0B5A70] flex items-center justify-center mx-auto md:mx-0">
                   <HugeiconsIcon icon={Agreement01Icon} size={22} />
                 </div>
-                <h3 className="font-bold text-[#0B5A70] text-sm md:text-base">সহজ এক্সচেঞ্জ পলিসি</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">সাইজ পরিবর্তন করতে চাইলে দ্রুত সাইজ চেঞ্জ করে দেওয়ার সুবিধা পাবেন।</p>
+                <h3 className="font-bold text-[#0B5A70] text-sm md:text-base">সাইজ এক্সচেঞ্জ সুবিধা</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">সাইজ ছোট-বড় হলে কোনো চিন্তা নেই! আমাদের সাথে যোগাযোগ করলে দ্রুত সাইজ চেঞ্জ করে দেওয়া হবে।</p>
               </div>
             </ScrollReveal>
           </div>
@@ -516,13 +708,13 @@ export default function KhimarLandingPage() {
         <div className="max-w-[1200px] mx-auto px-4 text-center">
           <ScrollReveal animation="fade-up" duration={700}>
             <span className="text-[#0B5A70] font-extrabold text-xs uppercase tracking-wider bg-[#0B5A70]/10 px-3 py-1 rounded-full">
-              Khimar Combo Codes
+              T-Shirt Combo Codes
             </span>
             <h2 className="text-2xl md:text-3xl font-extrabold text-[#0B5A70] mt-3">
-              আপনার পছন্দের খিমার কম্বো নির্বাচন করুন
+              আপনার পছন্দের টি-শার্ট কম্বো নির্বাচন করুন
             </h2>
             <p className="text-slate-500 font-medium text-xs md:text-sm mt-1 max-w-md mx-auto mb-10 md:mb-14">
-              নিচের যেকোনো কোড সিলেক্ট করুন এবং এখনই অফার প্রাইসে নিজের খিমার সংগ্রহ করুন।
+              নিচের যেকোনো কোড সিলেক্ট করুন এবং এখনই অফার প্রাইসে নিজের টি-শার্ট সংগ্রহ করুন।
             </p>
           </ScrollReveal>
 
@@ -536,61 +728,11 @@ export default function KhimarLandingPage() {
                   duration={750}
                   delay={(index % 3) * 100}
                 >
-                  <div
-                    className={`bg-white rounded-2xl border-2 transition-all p-4 flex flex-col gap-4 relative shadow-sm hover:shadow-md h-full ${
-                      isSelected ? "border-[#FF5722] bg-[#FF5722]/5" : "border-slate-200"
-                    }`}
-                  >
-                    {/* Badge Code */}
-                    <span className="absolute top-4 left-4 bg-[#0B5A70] text-white text-xs font-bold px-3 py-1 rounded-full z-10">
-                      Code: {variant.code}
-                    </span>
-
-                    {/* Tick Indicator */}
-                    {isSelected && (
-                      <div className="absolute top-4 right-4 bg-[#FF5722] text-white rounded-full p-1 shadow flex items-center justify-center z-10">
-                        <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={3} />
-                      </div>
-                    )}
-
-                    {/* Main image viewer for the card */}
-                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 border border-slate-100 group">
-                      <Image
-                        src={variant.images[0]}
-                        alt={variant.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-
-                    {/* Sub-thumbnails (interactive row) */}
-                    <div className="flex gap-2 justify-center">
-                      {variant.images.map((img, imgIdx) => (
-                        <div key={imgIdx} className="w-10 h-12 rounded border border-slate-200 overflow-hidden relative">
-                          <Image src={img} alt={`Thumb ${imgIdx}`} fill className="object-cover" />
-                        </div>
-                      ))}
-                    </div>
-
-                    <div>
-                      <h3 className="font-extrabold text-[#0B5A70] text-base md:text-lg">{variant.name}</h3>
-                      <div className="flex justify-center items-baseline gap-2 mt-1">
-                        <span className="text-[#FF5722] font-black text-lg">৳১,৪৫০</span>
-                        <span className="text-xs text-slate-400 line-through">৳১,৮০০</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => selectVariant(variant)}
-                      className={`w-full py-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                        isSelected
-                          ? "bg-[#FF5722] hover:bg-[#e64a19] text-white border-transparent"
-                          : "bg-[#0B5A70]/10 hover:bg-[#0B5A70]/20 text-[#0B5A70] border-transparent"
-                      }`}
-                    >
-                      {isSelected ? "অর্ডার ফর্মে সিলেক্ট করা আছে" : "কম্বোটি নির্বাচন করুন"}
-                    </button>
-                  </div>
+                  <TShirtCard
+                    variant={variant}
+                    isSelected={isSelected}
+                    onSelect={selectVariant}
+                  />
                 </ScrollReveal>
               );
             })}
@@ -606,7 +748,7 @@ export default function KhimarLandingPage() {
               Size Guide
             </span>
             <h2 className="text-2xl md:text-3xl font-extrabold text-[#0B5A70] mt-3">
-              খিমার সাইজ গাইড
+              টি-শার্ট সাইজ গাইড
             </h2>
             <p className="text-slate-500 font-medium text-xs md:text-sm mt-1 mb-8">
               অর্ডার করার আগে আপনার উপযুক্ত সাইজটি দেখে নিন।
@@ -619,40 +761,35 @@ export default function KhimarLandingPage() {
                 <thead>
                   <tr className="border-b border-slate-200 text-[#0B5A70]">
                     <th className="py-3 px-4 text-xs md:text-sm font-black uppercase">সাইজ (Size)</th>
-                    <th className="py-3 px-4 text-xs md:text-sm font-black uppercase">সামনের লম্বা (Front)</th>
-                    <th className="py-3 px-4 text-xs md:text-sm font-black uppercase">পিছনের লম্বা (Back)</th>
-                    <th className="py-3 px-4 text-xs md:text-sm font-black uppercase">উচ্চতা (Height Reference)</th>
+                    <th className="py-3 px-4 text-xs md:text-sm font-black uppercase">বুক (Chest)</th>
+                    <th className="py-3 px-4 text-xs md:text-sm font-black uppercase">লম্বা (Length)</th>
                   </tr>
                 </thead>
                 <tbody className="text-slate-650 text-xs md:text-sm">
                   <tr className="border-b border-slate-100 hover:bg-slate-100/50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-[#0B5A70]">40</td>
+                    <td className="py-3.5 px-4 font-bold text-[#0B5A70]">M</td>
+                    <td className="py-3.5 px-4">৩৮ ইঞ্চি</td>
+                    <td className="py-3.5 px-4">২৭ ইঞ্চি</td>
+                  </tr>
+                  <tr className="border-b border-slate-100 hover:bg-slate-100/50 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-[#0B5A70]">L</td>
                     <td className="py-3.5 px-4">৪০ ইঞ্চি</td>
-                    <td className="py-3.5 px-4">৪৫ ইঞ্চি</td>
-                    <td className="py-3.5 px-4">৫'০" - ৫'২"</td>
+                    <td className="py-3.5 px-4">২৮ ইঞ্চি</td>
                   </tr>
                   <tr className="border-b border-slate-100 hover:bg-slate-100/50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-[#0B5A70]">42</td>
+                    <td className="py-3.5 px-4 font-bold text-[#0B5A70]">XL</td>
                     <td className="py-3.5 px-4">৪২ ইঞ্চি</td>
-                    <td className="py-3.5 px-4">৪৭ ইঞ্চি</td>
-                    <td className="py-3.5 px-4">৫'২" - ৫'৪"</td>
+                    <td className="py-3.5 px-4">২৯ ইঞ্চি</td>
                   </tr>
                   <tr className="border-b border-slate-100 hover:bg-slate-100/50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-[#0B5A70]">44</td>
+                    <td className="py-3.5 px-4 font-bold text-[#0B5A70]">2XL</td>
                     <td className="py-3.5 px-4">৪৪ ইঞ্চি</td>
-                    <td className="py-3.5 px-4">৪৯ ইঞ্চি</td>
-                    <td className="py-3.5 px-4">৫'৪" - ৫'৬"</td>
-                  </tr>
-                  <tr className="border-b border-slate-100 hover:bg-slate-100/50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-[#0B5A70]">46</td>
-                    <td className="py-3.5 px-4">৪৬ ইঞ্চি</td>
-                    <td className="py-3.5 px-4">৫১ ইঞ্চি</td>
-                    <td className="py-3.5 px-4">৫'৬" - ৫'৮"+</td>
+                    <td className="py-3.5 px-4">৩০ ইঞ্চি</td>
                   </tr>
                 </tbody>
               </table>
               <div className="mt-4 p-3 bg-[#0B5A70]/5 rounded-xl text-[11px] text-[#0B5A70] font-bold text-center leading-relaxed">
-                💡 নোট: আমাদের খিমারগুলো ফ্রি সাইজ ফেস কাটিংয়ে তৈরি, যা যেকোনো মুখের সাইজের সাথে মানিয়ে যায় এবং পিছনে ফিতা দিয়ে বাঁধার সুবিধা রয়েছে।
+                💡 নোট: আমাদের টি-শার্টগুলো স্ট্যান্ডার্ড সাইজে তৈরি, যা আপনাকে দেবে কমফোর্টেবল ও স্টাইলিশ ফিটিং।
               </div>
             </div>
           </ScrollReveal>
@@ -879,7 +1016,7 @@ export default function KhimarLandingPage() {
                   </div>
                   <div className="flex-1 min-w-0 space-y-1">
                     <h4 className="font-extrabold text-[#0B5A70] text-sm md:text-base leading-snug">
-                      প্রিমিয়াম সুতি লং খিমার
+                      প্রিমিয়াম টি-শার্ট কম্বো
                     </h4>
                     <p className="text-xs font-semibold text-[#FF5722] bg-[#FF5722]/10 border border-[#FF5722]/20 px-2.5 py-0.5 rounded-md inline-block">
                       কোড: {selectedVariant.code}
@@ -915,7 +1052,7 @@ export default function KhimarLandingPage() {
                 <div className="py-2 space-y-2">
                   <h4 className="text-xs font-bold text-slate-650 uppercase tracking-wider">সাইজ নির্বাচন করুন * (এক বা একাধিক সিলেক্ট করতে পারেন)</h4>
                   <div className="grid grid-cols-4 gap-2">
-                    {KHIMAR_SIZES.map((sz) => {
+                    {TSHIRT_SIZES.map((sz) => {
                       const isSzSelected = selectedSizes.some((s) => s.id === sz.id);
                       return (
                         <button
@@ -1076,7 +1213,7 @@ export default function KhimarLandingPage() {
 
             <h3 className="text-xl font-bold text-slate-900 mb-2">অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে!</h3>
             <p className="text-xs md:text-sm text-slate-500 leading-relaxed mb-6">
-              আমাদের প্রিমিয়াম খিমার কম্বো অর্ডারের জন্য আপনাকে ধন্যবাদ। খুব শীঘ্রই আমাদের একজন রিপ্রেজেন্টেটিভ আপনার মোবাইল নাম্বারে কল করে অর্ডারটি কনফার্ম করবেন।
+              আমাদের প্রিমিয়াম টি-শার্ট কম্বো অর্ডারের জন্য আপনাকে ধন্যবাদ। খুব শীঘ্রই আমাদের একজন রিপ্রেজেন্টেটিভ আপনার মোবাইল নাম্বারে কল করে অর্ডারটি কনফার্ম করবেন।
             </p>
 
             {/* Order Brief Summary Card */}
@@ -1090,7 +1227,7 @@ export default function KhimarLandingPage() {
                 <span className="text-slate-900">{selectedVariant.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">খিমার সাইজ:</span>
+                <span className="text-slate-500">টি-শার্ট সাইজ:</span>
                 <span className="text-slate-900">{selectedSizes.map(s => s.name.split(" ")[0]).join(", ")}</span>
               </div>
               <div className="flex justify-between">

@@ -10,10 +10,46 @@ import { Add01Icon, Search01Icon, PencilEdit01Icon, Delete02Icon, StarIcon } fro
 export default function AdminProducts() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All Categories");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
+
+    // Read initial category from URL query parameters if present
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const catParam = params.get("category");
+      if (catParam) {
+        setSelectedCategory(catParam);
+      }
+    }
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("name")
+        .order("name", { ascending: true });
+
+      if (data && !error && data.length > 0) {
+        setCategories(data.map((c: any) => c.name));
+      } else {
+        const fallback = [
+          "Gadgets", "Smart Electronics", "Home & Lifestyle", "Beauty & Personal", 
+          "Healthy Food", "Fashion", "Mom & Baby", "Home & Kitchen", "Appliances", 
+          "Fitness & Health", "Smart Watch", "Religious", "Peripherals", 
+          "Smart Furniture", "Books", "Others"
+        ];
+        setCategories(fallback);
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+    }
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -35,6 +71,17 @@ export default function AdminProducts() {
     }
     setLoading(false);
   };
+
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategory === "All Categories" || 
+      String(product.category).toLowerCase() === selectedCategory.toLowerCase();
+
+    const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(product.id).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.category && String(product.category).toLowerCase().includes(searchQuery.toLowerCase()));
+
+    return matchesCategory && matchesSearch;
+  });
 
   const handleDelete = async (id: any) => {
     if (confirm("Are you sure you want to delete this product?")) {
@@ -86,18 +133,26 @@ export default function AdminProducts() {
             <input 
               type="text" 
               placeholder="Search products..." 
-              className="w-full bg-gray-50 border-none rounded-xl py-2.5 px-4 pl-12 text-sm outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-gray-50 border-none rounded-xl py-2.5 px-4 pl-12 text-sm outline-none focus:ring-2 focus:ring-blue-100 transition-all text-gray-800"
             />
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
               <HugeiconsIcon icon={Search01Icon} size={18} />
             </span>
           </div>
           <div className="flex items-center gap-3">
-             <select className="bg-gray-50 border-none rounded-xl py-2.5 px-4 text-sm outline-none font-medium text-gray-600">
-               <option>All Categories</option>
-               <option>Gadgets</option>
-               <option>Fashion</option>
-               <option>Healthy Food</option>
+             <select 
+               value={selectedCategory}
+               onChange={(e) => setSelectedCategory(e.target.value)}
+               className="bg-gray-50 border-none rounded-xl py-2.5 px-4 text-sm outline-none font-medium text-gray-600 cursor-pointer"
+             >
+               <option value="All Categories">All Categories</option>
+               {categories.map((cat) => (
+                 <option key={cat} value={cat}>
+                   {cat}
+                 </option>
+               ))}
              </select>
           </div>
         </div>
@@ -153,11 +208,11 @@ export default function AdminProducts() {
                     </td>
                   </tr>
                 ))
-              ) : products.length === 0 ? (
+              ) : filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-10 text-center text-gray-400 font-medium italic">No products found.</td>
                 </tr>
-              ) : products.map((product) => (
+              ) : filteredProducts.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-50/30 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">

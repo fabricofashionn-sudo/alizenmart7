@@ -243,7 +243,8 @@ export default function KhimarLandingPage() {
   const [transactionId, setTransactionId] = useState("");
 
   // Selected Product Configuration
-  const [selectedVariant, setSelectedVariant] = useState(TSHIRT_VARIANTS[0]);
+  const [selectedVariants, setSelectedVariants] = useState<typeof TSHIRT_VARIANTS>([TSHIRT_VARIANTS[0]]);
+  const [activeShowcaseVariant, setActiveShowcaseVariant] = useState<typeof TSHIRT_VARIANTS[0]>(TSHIRT_VARIANTS[0]);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedSizes, setSelectedSizes] = useState<typeof TSHIRT_SIZES>([TSHIRT_SIZES[1]]); // Default L
   const [quantity, setQuantity] = useState(1);
@@ -273,28 +274,28 @@ export default function KhimarLandingPage() {
   // Refs for smooth scroll target
   const orderFormRef = useRef<HTMLDivElement>(null);
 
-  // Reset active image index when variant changes
+  // Reset active image index when active showcase variant changes
   useEffect(() => {
     setActiveImageIndex(0);
-  }, [selectedVariant]);
+  }, [activeShowcaseVariant]);
 
   // Auto-slide for product showcase images
   useEffect(() => {
-    if (selectedVariant.images.length <= 1) return;
+    if (activeShowcaseVariant.images.length <= 1) return;
     const timer = setInterval(() => {
-      setActiveImageIndex((prev) => (prev + 1) % selectedVariant.images.length);
+      setActiveImageIndex((prev) => (prev + 1) % activeShowcaseVariant.images.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [selectedVariant]);
+  }, [activeShowcaseVariant]);
 
   const nextImage = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    setActiveImageIndex((prev) => (prev + 1) % selectedVariant.images.length);
+    setActiveImageIndex((prev) => (prev + 1) % activeShowcaseVariant.images.length);
   };
 
   const prevImage = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    setActiveImageIndex((prev) => (prev - 1 + selectedVariant.images.length) % selectedVariant.images.length);
+    setActiveImageIndex((prev) => (prev - 1 + activeShowcaseVariant.images.length) % activeShowcaseVariant.images.length);
   };
 
   // Check if user is logged in
@@ -318,7 +319,7 @@ export default function KhimarLandingPage() {
   // Price Calculations
   const unitPrice = 1450;
   const oldUnitPrice = 1800;
-  const totalQuantity = quantity * selectedSizes.length;
+  const totalQuantity = quantity * selectedSizes.length * selectedVariants.length;
   const subtotal = unitPrice * totalQuantity;
   const deliveryCharge = deliveryOption === "inside" ? 70 : 120;
 
@@ -332,10 +333,21 @@ export default function KhimarLandingPage() {
     orderFormRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Variant selector click
-  const selectVariant = (variant: typeof TSHIRT_VARIANTS[0]) => {
-    setSelectedVariant(variant);
-    scrollToOrderForm();
+  // Toggle variant selector click
+  const toggleVariant = (variant: typeof TSHIRT_VARIANTS[0]) => {
+    setSelectedVariants(prev => {
+      const exists = prev.some(v => v.id === variant.id);
+      if (exists) {
+        if (prev.length <= 1) {
+          showError("অবশ্যই অন্তত একটি কম্বো সিলেক্ট থাকতে হবে।");
+          return prev;
+        }
+        return prev.filter(v => v.id !== variant.id);
+      } else {
+        return [...prev, variant];
+      }
+    });
+    setActiveShowcaseVariant(variant);
   };
 
   // Submit Order Handler
@@ -387,15 +399,17 @@ export default function KhimarLandingPage() {
         payment_method: paymentMethod,
         bkash_number: paymentMethod !== "cod" ? bkashNumber : null,
         transaction_id: paymentMethod !== "cod" ? transactionId : null,
-        notes: `T-Shirt Combo Code: ${selectedVariant.code} | Sizes: ${selectedSizes.map(sz => sz.name.split(" ")[0]).join(", ")} | ${orderNote}` +
+        notes: `T-Shirt Combo Codes: ${selectedVariants.map(v => v.code).join(", ")} | Sizes: ${selectedSizes.map(sz => sz.name.split(" ")[0]).join(", ")} | ${orderNote}` +
           (paymentMethod !== "cod" && paymentMethod !== "bkash" ? ` [${paymentMethod.toUpperCase()} Pay: ${bkashNumber}, TrxID: ${transactionId}]` : ""),
-        items: selectedSizes.map(sz => ({
-          id: `khimar-${selectedVariant.id}-${sz.id}`,
-          title: `প্রিমিয়াম চায়না ফেব্রিক্স টি-শার্ট কম্বো - ${selectedVariant.code} (Size: ${sz.name.split(" ")[0]})`,
-          price: unitPrice,
-          quantity: quantity,
-          image: selectedVariant.images[0]
-        })),
+        items: selectedVariants.flatMap(variant => 
+          selectedSizes.map(sz => ({
+            id: `khimar-${variant.id}-${sz.id}`,
+            title: `প্রিমিয়াম চায়না ফেব্রিক্স টি-শার্ট কম্বো - ${variant.code} (Size: ${sz.name.split(" ")[0]})`,
+            price: unitPrice,
+            quantity: quantity,
+            image: variant.images[0]
+          }))
+        ),
       };
 
       let finalOrderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
@@ -579,7 +593,7 @@ export default function KhimarLandingPage() {
                 
                 {/* Image Slider Wrapper */}
                 <div className="absolute inset-0">
-                  {selectedVariant.images.map((img, idx) => (
+                  {activeShowcaseVariant.images.map((img, idx) => (
                     <div
                       key={idx}
                       className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
@@ -588,7 +602,7 @@ export default function KhimarLandingPage() {
                     >
                       <Image
                         src={img}
-                        alt={`${selectedVariant.name} - ${idx}`}
+                        alt={`${activeShowcaseVariant.name} - ${idx}`}
                         fill
                         className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
                         priority={idx === 0}
@@ -598,7 +612,7 @@ export default function KhimarLandingPage() {
                 </div>
 
                 {/* Left/Right Control Arrows */}
-                {selectedVariant.images.length > 1 && (
+                {activeShowcaseVariant.images.length > 1 && (
                   <>
                     <button
                       type="button"
@@ -625,13 +639,13 @@ export default function KhimarLandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent z-10 pointer-events-none"></div>
                 <div className="absolute bottom-6 left-6 flex flex-col gap-1 z-20 pointer-events-none">
                   <span className="bg-[#FF5722] text-white px-3 py-1 rounded-full text-xs font-bold uppercase inline-block w-fit shadow">Combo Promo</span>
-                  <p className="text-white font-extrabold text-lg">{selectedVariant.name}</p>
+                  <p className="text-white font-extrabold text-lg">{activeShowcaseVariant.name}</p>
                 </div>
               </div>
 
               {/* Image thumbnail list inside variant */}
               <div className="flex justify-center gap-2.5">
-                {selectedVariant.images.map((img, idx) => (
+                {activeShowcaseVariant.images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
@@ -720,7 +734,7 @@ export default function KhimarLandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {TSHIRT_VARIANTS.map((variant, index) => {
-              const isSelected = selectedVariant.id === variant.id;
+              const isSelected = selectedVariants.some(v => v.id === variant.id);
               return (
                 <ScrollReveal
                   key={variant.id}
@@ -731,7 +745,7 @@ export default function KhimarLandingPage() {
                   <TShirtCard
                     variant={variant}
                     isSelected={isSelected}
-                    onSelect={selectVariant}
+                    onSelect={toggleVariant}
                   />
                 </ScrollReveal>
               );
@@ -1009,41 +1023,58 @@ export default function KhimarLandingPage() {
               </h3>
 
               <div className="space-y-4">
-                {/* Product Info Row */}
-                <div className="flex gap-4 pb-4 border-b border-slate-200">
-                  <div className="w-16 h-20 bg-white rounded-xl border border-slate-150 overflow-hidden relative flex-shrink-0">
-                    <Image src={selectedVariant.images[0]} alt={selectedVariant.name} fill className="object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <h4 className="font-extrabold text-[#0B5A70] text-sm md:text-base leading-snug">
-                      প্রিমিয়াম টি-শার্ট কম্বো
-                    </h4>
-                    <p className="text-xs font-semibold text-[#FF5722] bg-[#FF5722]/10 border border-[#FF5722]/20 px-2.5 py-0.5 rounded-md inline-block">
-                      কোড: {selectedVariant.code}
-                    </p>
-
-                    {/* Quantity Adjustment Selector */}
-                    <div className="flex items-center gap-2 pt-2">
-                      <span className="text-xs text-slate-500 font-bold">পরিমাণ:</span>
-                      <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
-                        <button
-                          type="button"
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="px-2 py-1 text-slate-500 hover:bg-slate-50 font-extrabold text-sm cursor-pointer select-none"
-                        >
-                          -
-                        </button>
-                        <span className="px-3 py-1 font-bold text-xs text-slate-800 bg-white border-x border-slate-150 min-w-[24px] text-center">
-                          {quantity}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setQuantity(quantity + 1)}
-                          className="px-2 py-1 text-slate-500 hover:bg-slate-50 font-extrabold text-sm cursor-pointer select-none"
-                        >
-                          +
-                        </button>
+                {/* Product Info Rows for selected combos */}
+                <div className="space-y-3 pb-4 border-b border-slate-200">
+                  <h4 className="text-xs font-bold text-slate-550 uppercase tracking-wider">নির্বাচিত কম্বো সমূহ:</h4>
+                  {selectedVariants.map((variant) => (
+                    <div key={variant.id} className="flex gap-3 items-center bg-white p-2.5 rounded-xl border border-slate-150 relative">
+                      <div className="w-10 h-12 bg-slate-50 rounded-lg overflow-hidden relative flex-shrink-0">
+                        <Image src={variant.images[0]} alt={variant.name} fill className="object-cover" />
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <h5 className="font-bold text-[#0B5A70] text-xs md:text-sm truncate">
+                          {variant.name}
+                        </h5>
+                        <p className="text-[10px] font-bold text-[#FF5722]">
+                          কোড: {variant.code}
+                        </p>
+                      </div>
+                      {selectedVariants.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => toggleVariant(variant)}
+                          className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                          title="বাদ দিন"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Quantity Adjustment Selector */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <span className="text-xs text-slate-500 font-bold">পরিমাণ (প্রতিটির জন্য):</span>
+                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="px-2 py-1 text-slate-500 hover:bg-slate-50 font-extrabold text-sm cursor-pointer select-none"
+                      >
+                        -
+                      </button>
+                      <span className="px-3 py-1 font-bold text-xs text-slate-800 bg-white border-x border-slate-150 min-w-[24px] text-center">
+                        {quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="px-2 py-1 text-slate-500 hover:bg-slate-50 font-extrabold text-sm cursor-pointer select-none"
+                      >
+                        +
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1222,9 +1253,11 @@ export default function KhimarLandingPage() {
                 <span className="text-slate-500">অর্ডার ট্র্যাকিং নম্বর:</span>
                 <span className="text-[#0B5A70] font-bold">#{placedOrderId}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between flex-col sm:flex-row gap-1">
                 <span className="text-slate-500">সিলেক্টেড কম্বো:</span>
-                <span className="text-slate-900">{selectedVariant.name}</span>
+                <span className="text-slate-900 text-right font-bold">
+                  {selectedVariants.map(v => v.code).join(", ")}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">টি-শার্ট সাইজ:</span>

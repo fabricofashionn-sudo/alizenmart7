@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { useCart } from "@/context/CartContext";
@@ -16,6 +16,42 @@ const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { totalItems } = useCart();
   const [dbCategories, setDbCategories] = useState<any[]>([]);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, scrollLeft: 0 });
+  const hasMoved = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    hasMoved.current = false;
+    dragStart.current = {
+      x: e.pageX - scrollRef.current.offsetLeft,
+      scrollLeft: scrollRef.current.scrollLeft,
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - dragStart.current.x) * 1.5; // scroll speed multiplier
+    if (Math.abs(x - dragStart.current.x) > 5) {
+      hasMoved.current = true;
+    }
+    scrollRef.current.scrollLeft = dragStart.current.scrollLeft - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (hasMoved.current) {
+      e.preventDefault();
+    }
+  };
 
   useEffect(() => {
     const fetchHeaderCategories = async () => {
@@ -257,35 +293,37 @@ const Header = () => {
       </div>
 
       {/* Desktop Sub Navigation */}
-      <div className="hidden md:block bg-white border-b border-gray-100 shadow-sm overflow-hidden">
-        <div className="container-custom max-w-[1000px] overflow-hidden relative py-3 text-[14px] font-bold text-gray-700 select-none">
+      <div className="hidden md:block bg-white border-b border-gray-100 shadow-sm">
+        <div className="container-custom max-w-[1000px] relative text-[14px] font-bold text-gray-700 select-none">
           <style>{`
-            @keyframes marqueeRightToLeft {
-              0% { transform: translateX(0%); }
-              100% { transform: translateX(-50%); }
+            .no-scrollbar::-webkit-scrollbar {
+              display: none;
             }
-            .animate-marquee-rtl {
-              display: flex;
-              width: max-content;
-              gap: 3rem;
-              animation: marqueeRightToLeft 80s linear infinite;
-            }
-            .animate-marquee-rtl:hover {
-              animation-play-state: paused;
+            .no-scrollbar {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
             }
           `}</style>
           
-          <div className="animate-marquee-rtl">
-            {/* Set 1 */}
+          <div 
+            ref={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            className="flex items-center gap-8 py-3 overflow-x-auto no-scrollbar cursor-grab active:cursor-grabbing select-none whitespace-nowrap"
+            style={{ scrollBehavior: isDragging ? "auto" : "smooth" }}
+          >
             {rootCategories.map((cat, index) => {
               const subs = subCategoryMap[cat.id] || [];
               const hasSubs = subs.length > 0;
 
               return (
-                <div key={`s1-${cat.id || index}`} className="relative group py-1">
+                <div key={`cat-${cat.id || index}`} className="relative group py-1 flex-shrink-0">
                   <Link 
                     href={`/category/${cat.slug}`} 
                     className="hover:text-[#FF5722] flex items-center gap-1 transition-colors py-1"
+                    onClick={handleLinkClick}
                   >
                     <span>{cat.name}</span>
                     {hasSubs && (
@@ -303,44 +341,7 @@ const Header = () => {
                             key={subIndex}
                             href={`/category/${sub.slug}`}
                             className="text-xs text-gray-600 hover:text-[#FF5722] font-semibold transition-colors"
-                          >
-                            {sub.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Set 2 (Duplicate for Infinite loop) */}
-            {rootCategories.map((cat, index) => {
-              const subs = subCategoryMap[cat.id] || [];
-              const hasSubs = subs.length > 0;
-
-              return (
-                <div key={`s2-${cat.id || index}`} className="relative group py-1">
-                  <Link 
-                    href={`/category/${cat.slug}`} 
-                    className="hover:text-[#FF5722] flex items-center gap-1 transition-colors py-1"
-                  >
-                    <span>{cat.name}</span>
-                    {hasSubs && (
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-gray-400 group-hover:text-[#FF5722] transition-colors">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    )}
-                  </Link>
-
-                  {hasSubs && (
-                    <div className="absolute top-full left-0 bg-white border border-gray-100 rounded-xl shadow-xl py-3 px-4 w-max min-w-[180px] max-w-[250px] hidden group-hover:block z-50">
-                      <div className="flex flex-col gap-2.5">
-                        {subs.map((sub: any, subIndex: number) => (
-                          <Link
-                            key={subIndex}
-                            href={`/category/${sub.slug}`}
-                            className="text-xs text-gray-600 hover:text-[#FF5722] font-semibold transition-colors"
+                            onClick={handleLinkClick}
                           >
                             {sub.name}
                           </Link>

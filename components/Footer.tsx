@@ -107,10 +107,10 @@ const Footer = () => {
             <div className="space-y-4">
               <h4 className="text-[#093554] font-bold text-base md:text-lg">About Us</h4>
               <ul className="space-y-2.5 text-xs md:text-sm font-medium text-[#0c4063]">
-                <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Return & Refund Policy</Link></li>
-                <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Privacy Policy</Link></li>
-                <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Terms and Conditions</Link></li>
-                <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">About us</Link></li>
+                <li><Link href="/return-refund" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Return & Refund Policy</Link></li>
+                <li><Link href="/privacy-policy" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Privacy Policy</Link></li>
+                <li><Link href="/terms-conditions" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Terms and Conditions</Link></li>
+                <li><Link href="/about-us" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">About us</Link></li>
               </ul>
             </div>
  
@@ -118,10 +118,10 @@ const Footer = () => {
             <div className="space-y-4">
               <h4 className="text-[#093554] font-bold text-base md:text-lg">Useful Links</h4>
               <ul className="space-y-2.5 text-xs md:text-sm font-medium text-[#0c4063]">
-                <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Why Shop Online with Us</Link></li>
-                <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Online Payment Methods</Link></li>
-                <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">After Sales Support</Link></li>
-                <li><Link href="/" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">FAQ</Link></li>
+                <li><Link href="/why-shop-online" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Why Shop Online with Us</Link></li>
+                <li><Link href="/payment-methods" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">Online Payment Methods</Link></li>
+                <li><Link href="/after-sales" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">After Sales Support</Link></li>
+                <li><Link href="/faq" className="hover:text-[#093554] hover:underline transition-colors block py-0.5">FAQ</Link></li>
               </ul>
             </div>
  

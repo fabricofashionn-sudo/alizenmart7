@@ -40,6 +40,15 @@ const TSHIRT_VARIANTS = [
     ]
   },
   {
+    id: "cod-02",
+    name: "Cod 02 Combo",
+    code: "Cod 02",
+    images: [
+      "/images/products/Cod 02/2.jpeg",
+      "/images/products/Cod 02/WhatsApp Image 2026-06-19 at 11.50.04 PM.jpeg"
+    ]
+  },
+  {
     id: "cod-03",
     name: "Cod 03 Combo",
     code: "Cod 03",

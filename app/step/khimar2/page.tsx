@@ -1334,7 +1334,7 @@ export default function KhimarLandingPage() {
 
       {/* Floating WhatsApp Button */}
       <a
-        href="https://wa.me/8801791764444?text=আমি%20খিমার%20অর্ডার%20করতে%20চাই"
+        href="https://wa.me/8801518486910?text=আমি%20খিমার%20অর্ডার%20করতে%20চাই"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white px-4 py-3 rounded-full shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all duration-300 hover:scale-105 active:scale-95 group"

@@ -76,6 +76,16 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-NMNG4WRN"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+        {/* End Google Tag Manager (noscript) */}
         <CartProvider>
           <Suspense fallback={null}>
             {children}
